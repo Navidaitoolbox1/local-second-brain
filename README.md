@@ -60,9 +60,11 @@ The dashboard is a single offline HTML file. **It must be run as a local file, n
 
 1. Download/clone the repo to your computer
 2. Double-click `dashboard/index.html` so it opens in your browser (Chrome or Edge recommended for the folder picker)
-3. Click **Open Vault Folder** and select this repository folder
+3. Click **▶ Load demo data** to see it working instantly, or **📂 Open Vault Folder** and select this repository folder to load your own notes
 
-The dashboard scans your Markdown files **locally** — tasks, projects, notes, and meetings with search, filters, and stats. No server, no network, nothing leaves your machine.
+The dashboard scans your Markdown files **locally** — tasks, projects, notes, and meetings with stats, overdue detection, search, and filters. No server, no network, nothing leaves your machine.
+
+The repo ships with **starter content** (example task, project, meeting, notes, goal, and agent prompts) so the dashboard and Obsidian show real data on day one. Delete the `example-*` / `welcome-*` files once you're comfortable.
 
 > Want a clickable link instead of a local file? Enable **GitHub Pages** (Settings → Pages → Deploy from branch → `main` / root). Then `https://<user>.github.io/<repo>/dashboard/` runs the dashboard over HTTPS with the full folder picker.
 
