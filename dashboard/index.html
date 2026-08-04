@@ -1,42 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Notion - Dashboard</title>
-    <style>
-        body { font-family: system-ui, sans-serif; margin: 40px; background: #f8f9fa; }
-        h1 { color: #111; }
-        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .folder { margin: 8px 0; padding: 8px 12px; background: #f1f3f5; border-radius: 4px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Notion — Dashboard</title>
+<style>
+  :root {
+    --bg: #f8f9fa; --panel: #ffffff; --text: #111318; --muted: #6b7280;
+    --line: #e5e7eb; --chip: #f1f3f5; --accent: #2563eb; --accent-soft: #dbeafe;
+    --ok: #16a34a; --warn: #d97706; --bad: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --panel: #171a21; --text: #e5e7eb; --muted: #9ca3af;
+      --line: #262b36; --chip: #1f242e; --accent: #60a5fa; --accent-soft: #1e3a5f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+  header { padding: 24px 32px 12px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 1.4rem; }
+  header .sub { color: var(--muted); font-size: .9rem; width: 100%; }
+  main { padding: 0 32px 48px; max-width: 1100px; }
+  button.primary {
+    background: var(--accent); color: #fff; border: 0; border-radius: 8px;
+    padding: 10px 18px; font-size: .95rem; cursor: pointer;
+  }
+  button.primary:hover { filter: brightness(1.1); }
+  .tabs { display: flex; gap: 4px; margin: 18px 0 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tabs button {
+    background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted);
+    padding: 8px 14px; font-size: .95rem; cursor: pointer;
+  }
+  .tabs button.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .card .num { font-size: 1.7rem; font-weight: 700; }
+  .card .lbl { color: var(--muted); font-size: .82rem; margin-top: 2px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .toolbar input[type="search"], .toolbar select {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 12px; font-size: .9rem;
+  }
+  .toolbar input[type="search"] { flex: 1; min-width: 180px; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .row { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px;
+         display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .row .title { font-weight: 600; }
+  .row .path { color: var(--muted); font-size: .78rem; margin-left: auto; direction: ltr; }
+  .chip { background: var(--chip); border-radius: 999px; padding: 2px 10px; font-size: .75rem; color: var(--muted); white-space: nowrap; }
+  .chip.status-done { color: var(--ok); }
+  .chip.status-todo { color: var(--warn); }
+  .chip.prio-high { color: var(--bad); }
+  .chip.due { color: var(--accent); }
+  .empty { color: var(--muted); padding: 30px 0; text-align: center; }
+  #landing { background: var(--panel); border: 1px dashed var(--line); border-radius: 12px;
+             padding: 40px; text-align: center; margin-top: 20px; }
+  #landing p { color: var(--muted); max-width: 520px; margin: 10px auto; }
+  .hidden { display: none !important; }
+  .privacy { font-size: .78rem; color: var(--muted); margin-top: 14px; }
+  progress { width: 100%; }
+</style>
 </head>
 <body>
-    <h1>Local Notion Dashboard</h1>
-    <p>A free, local, open-source alternative to Notion. Works with any LLM.</p>
-    
-    <div class="section">
-        <h2>System of Record</h2>
-        <div class="folder">Databases</div>
-        <div class="folder">Meeting Notes</div>
-        <div class="folder">Tasks</div>
-        <div class="folder">Projects</div>
+<header>
+  <h1>🗂️ Local Notion Dashboard</h1>
+  <button class="primary" id="openBtn">Open Vault Folder</button>
+  <input type="file" id="dirInput" webkitdirectory multiple class="hidden">
+  <span class="sub">A free, local, open-source alternative to Notion. Your files never leave your machine — everything runs in this page.</span>
+</header>
+<main>
+  <div id="landing">
+    <h2>Open your vault to begin</h2>
+    <p>Click <strong>Open Vault Folder</strong> and select your Local Notion folder (the repository root).
+       The dashboard scans your Markdown files locally and shows tasks, projects, and notes.</p>
+    <p class="privacy">🔒 100% offline — no network requests, no uploads, no tracking. Reading is read-only; nothing in your vault is modified.</p>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="cards" id="statsCards"></div>
+    <div class="tabs" id="tabs">
+      <button data-tab="tasks" class="active">✅ Tasks</button>
+      <button data-tab="projects">📁 Projects</button>
+      <button data-tab="notes">📝 Notes</button>
+      <button data-tab="meetings">👥 Meetings</button>
     </div>
-    
-    <div class="section">
-        <h2>Notion AI (Local)</h2>
-        <div class="folder">Custom Agents</div>
-        <div class="folder">Deep Research</div>
-        <div class="folder">AI Meeting Notes</div>
+    <div class="toolbar">
+      <input type="search" id="searchBox" placeholder="Search…">
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option>Todo</option><option>Doing</option><option>Done</option><option>Active</option>
+      </select>
+      <select id="sortSel">
+        <option value="due">Sort: due date</option>
+        <option value="title">Sort: title</option>
+        <option value="modified">Sort: last modified</option>
+      </select>
     </div>
-    
-    <div class="section">
-        <h2>Personal Productivity</h2>
-        <div class="folder">Notes</div>
-        <div class="folder">Goals</div>
-        <div class="folder">Habits</div>
-    </div>
-    
-    <p><strong>How to use:</strong> Run <code>python setup.py</code> then open this folder in Obsidian.</p>
+    <div class="list" id="list"></div>
+  </div>
+</main>
+
+<script>
+"use strict";
+(() => {
+  const state = { items: [], tab: "tasks", query: "", status: "", sort: "due" };
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------- vault opening ---------- */
+  $("openBtn").addEventListener("click", async () => {
+    if (window.showDirectoryPicker) {
+      try {
+        const dir = await window.showDirectoryPicker({ mode: "read" });
+        const files = [];
+        await collectFSA(dir, "", files);
+        await loadFiles(files);
+      } catch (e) { if (e.name !== "AbortError") alert("Could not open folder: " + e.message); }
+    } else {
+      $("dirInput").click(); // fallback: Firefox/Safari
+    }
+  });
+  $("dirInput").addEventListener("change", async (ev) => {
+    const files = [...ev.target.files]
+      .filter(f => f.name.endsWith(".md"))
+      .map(f => ({ path: f.webkitRelativePath || f.name, file: f }));
+    await loadFiles(files);
+  });
+
+  const SKIP_DIRS = new Set([".git", ".obsidian", "node_modules", ".trash"]);
+  async function collectFSA(dirHandle, prefix, out) {
+    for await (const [name, handle] of dirHandle.entries()) {
+      if (handle.kind === "directory") {
+        if (!SKIP_DIRS.has(name)) await collectFSA(handle, prefix + name + "/", out);
+      } else if (name.endsWith(".md")) {
+        out.push({ path: prefix + name, file: await handle.getFile() });
+      }
+    }
+  }
+
+  /* ---------- parsing (plain text only — never rendered as HTML) ---------- */
+  function parseFrontmatter(text) {
+    const fm = {};
+    const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!m) return fm;
+    for (const line of m[1].split(/\r?\n/)) {
+      const kv = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+      if (kv) fm[kv[1].toLowerCase()] = kv[2].replace(/^["'\[]|["'\]]$/g, "").trim();
+    }
+    return fm;
+  }
+  function firstHeading(text) {
+    const m = text.replace(/^---\r?\n[\s\S]*?\r?\n---/, "").match(/^#\s+(.+)$/m);
+    return m ? m[1].trim() : "";
+  }
+  function countCheckboxes(text) {
+    const open = (text.match(/^\s*[-*]\s+\[ \]/gm) || []).length;
+    const done = (text.match(/^\s*[-*]\s+\[[xX]\]/gm) || []).length;
+    return { open, done };
+  }
+
+  async function loadFiles(files) {
+    const items = [];
+    for (const { path, file } of files) {
+      if (file.size > 2 * 1024 * 1024) continue; // skip huge files
+      let text; try { text = await file.text(); } catch { continue; }
+      const fm = parseFrontmatter(text);
+      const boxes = countCheckboxes(text);
+      const type = (fm.type || "").toLowerCase()
+        || (path.includes("Tasks/") ? "task"
+          : path.includes("Projects/") ? "project"
+          : path.includes("Meeting_Notes/") ? "meeting" : "note");
+      items.push({
+        path, type,
+        title: fm.title || firstHeading(text) || file.name.replace(/\.md$/, ""),
+        status: fm.status || "", priority: fm.priority || "",
+        due: fm.due || fm.deadline || "", date: fm.date || fm.created || "",
+        openTasks: boxes.open, doneTasks: boxes.done,
+        modified: file.lastModified || 0,
+      });
+    }
+    state.items = items;
+    $("landing").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    render();
+  }
+
+  /* ---------- rendering (XSS-safe: textContent only) ---------- */
+  function el(tag, cls, txt) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt !== undefined) n.textContent = txt; // never innerHTML for vault content
+    return n;
+  }
+
+  function renderStats() {
+    const c = $("statsCards"); c.replaceChildren();
+    const openTasks = state.items.reduce((s, i) => s + i.openTasks, 0);
+    const doneTasks = state.items.reduce((s, i) => s + i.doneTasks, 0);
+    const defs = [
+      [state.items.length, "Markdown files"],
+      [state.items.filter(i => i.type === "project").length, "Projects"],
+      [openTasks, "Open checkboxes"],
+      [doneTasks, "Done checkboxes"],
+      [state.items.filter(i => i.type === "meeting").length, "Meetings"],
+    ];
+    for (const [num, lbl] of defs) {
+      const card = el("div", "card");
+      card.append(el("div", "num", String(num)), el("div", "lbl", lbl));
+      c.append(card);
+    }
+  }
+
+  const TAB_TYPE = { tasks: "task", projects: "project", notes: "note", meetings: "meeting" };
+  function filtered() {
+    let arr = state.items.filter(i => i.type === TAB_TYPE[state.tab]);
+    if (state.status) arr = arr.filter(i => i.status.toLowerCase() === state.status.toLowerCase());
+    if (state.query) {
+      const q = state.query.toLowerCase();
+      arr = arr.filter(i => i.title.toLowerCase().includes(q) || i.path.toLowerCase().includes(q));
+    }
+    const key = state.sort;
+    arr.sort((a, b) =>
+      key === "title" ? a.title.localeCompare(b.title)
+      : key === "modified" ? b.modified - a.modified
+      : String(a.due || a.date || "9999").localeCompare(String(b.due || b.date || "9999")));
+    return arr;
+  }
+
+  function renderList() {
+    const list = $("list"); list.replaceChildren();
+    const arr = filtered();
+    if (!arr.length) { list.append(el("div", "empty", "Nothing here yet — or adjust your filters.")); return; }
+    for (const i of arr) {
+      const row = el("div", "row");
+      row.append(el("span", "title", i.title));
+      if (i.status) row.append(el("span", "chip status-" + i.status.toLowerCase(), i.status));
+      if (i.priority) row.append(el("span", "chip prio-" + i.priority.toLowerCase(), "⚑ " + i.priority));
+      if (i.due) row.append(el("span", "chip due", "📅 " + i.due));
+      else if (i.date) row.append(el("span", "chip", "🕓 " + i.date));
+      if (i.openTasks || i.doneTasks)
+        row.append(el("span", "chip", `☑ ${i.doneTasks}/${i.openTasks + i.doneTasks}`));
+      row.append(el("span", "path", i.path));
+      list.append(row);
+    }
+  }
+
+  function render() { renderStats(); renderList(); }
+
+  /* ---------- interactions ---------- */
+  $("tabs").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-tab]");
+    if (!btn) return;
+    state.tab = btn.dataset.tab;
+    for (const b of $("tabs").children) b.classList.toggle("active", b === btn);
+    renderList();
+  });
+  $("searchBox").addEventListener("input", (e) => { state.query = e.target.value; renderList(); });
+  $("statusFilter").addEventListener("change", (e) => { state.status = e.target.value; renderList(); });
+  $("sortSel").addEventListener("change", (e) => { state.sort = e.target.value; renderList(); });
+})();
+</script>
 </body>
 </html>

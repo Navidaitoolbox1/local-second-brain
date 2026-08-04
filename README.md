@@ -1,40 +1,32 @@
-# Local Second Brain
+# Local Notion
 
-A free, local-first, open-source system for building your personal Second Brain.
+A free, local-first, open-source alternative to Notion.
 
-Inspired by the Second Brain methodology (Tiago Forte), this project helps you capture, organize, and retrieve knowledge using only local files — no subscriptions, no cloud lock-in, and full privacy.
+Capture, organize, and retrieve your knowledge using only local Markdown files — no subscriptions, no cloud lock-in, full privacy. Works with Obsidian and any LLM.
 
-## ✨ What is a Second Brain?
+## ✨ Why Local Notion?
 
-A Second Brain is an external system that stores your ideas, notes, projects, and knowledge so your biological brain doesn't have to remember everything. It allows you to:
-
-- Capture ideas quickly
-- Organize knowledge meaningfully
-- Retrieve information when needed
-- Connect ideas across domains
-
-## 🚀 Features
-
-- **Complete Local System** — Everything stored in Markdown files
-- **Structured Knowledge** — Projects, Tasks, Meeting Notes, Atomic Notes, and more
-- **Powerful Search & Databases** — Using Obsidian + Dataview
-- **AI-Ready** — Works great with any free LLM for summarization, research, and idea generation
+- **Complete Local System** — everything stored in plain Markdown files you own
+- **Notion-style Workspace** — databases, projects, tasks, meeting notes, wiki
+- **Interactive Dashboard** — a zero-dependency, offline HTML dashboard that reads your vault
+- **AI-Ready** — agent prompts included; works with any LLM (cloud or fully local via Ollama)
+- **Powerful Queries** — Obsidian + Dataview turn folders into databases
 - **Version Controlled** — Git integration for backup and history
-- **Cross-Platform** — Works on Windows, macOS, and Linux
+- **Cross-Platform** — Windows, macOS, and Linux
 
 ## 📁 Folder Structure
 
 ```
-Local-Second-Brain/
-├── 00_System_of_Record/       # Core knowledge and databases
-├── 01_AI_Agents/              # Prompts and agent instructions
-├── 02_Developer_Tools/        # Scripts and automation
-├── 03_Integrations/           # Guides for external tools
-├── 04_Workflows/              # Business and personal processes
-├── 05_Personal_Productivity/  # Life OS (goals, habits, notes...)
-├── templates/                 # Ready-to-use templates
-├── docs/                      # Documentation
-└── scripts/                   # Setup and helper scripts
+Local-Notion/
+├── 00_System_of_Record/       # Databases, projects, tasks, meetings, wiki, knowledge base
+├── 01_Notion_AI/              # Agent prompts: custom agents, deep research, AI meeting notes
+├── 02_Developer_Platform/     # CLI tools, webhooks, syncs, agent tools
+├── 03_Connected_Workspace/    # Integration guides for external tools
+├── 04_Business_Workflows/     # CRM, roadmaps, content pipelines
+├── 05_Personal_Productivity/  # Personal OS: notes, tasks, goals, habits, reading lists
+├── dashboard/                 # Interactive local dashboard (open index.html)
+├── templates/                 # Ready-to-use note templates
+└── docs/                      # Documentation
 ```
 
 ## 🛠️ Quick Start
@@ -42,32 +34,39 @@ Local-Second-Brain/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/local-second-brain.git
+git clone https://github.com/Navidaitoolbox1/local-second-brain.git
 cd local-second-brain
 ```
 
 ### 2. Run setup
 
 ```bash
-python setup.py
+python setup.py .
 ```
+
+(or `python setup.py ~/My-Vault` to create the structure elsewhere)
 
 ### 3. Open in Obsidian
 
-1. Open Obsidian → "Open folder as vault"
-2. Select the `Local-Second-Brain` folder
-3. Install recommended plugins (Dataview + Tasks)
+1. Open Obsidian → **Open folder as vault**
+2. Select this folder
+3. Install recommended plugins (Dataview, Tasks, Templater)
 
-### 4. Start capturing
+### 4. Open the dashboard
 
-Use the templates in the `templates/` folder to create your first notes.
+Open `dashboard/index.html` in your browser, click **Open Vault Folder**, and select this folder. The dashboard scans your Markdown files **locally** — tasks, projects, notes, and meetings with search, filters, and stats. No server, no network, nothing leaves your machine.
 
-## 🤖 Using with Free AI Models
+### 5. Start capturing
 
-This system is designed to work with any free LLM. Just copy a template and ask your model to fill it.
+Drop ideas into `00_System_of_Record/Forms/Inbox.md`, then use the templates in [`templates/`](templates/) to create notes, tasks, and projects.
 
-Example:
+## 🤖 Using with AI Models
+
+This system is designed to work with any LLM. Just copy a template and ask your model to fill it:
+
 > "Use the Atomic Note template and turn this article into 3 atomic notes."
+
+Ready-made prompts live in [docs/agent-prompts.md](docs/agent-prompts.md). For sensitive notes, use a local model — see [docs/free-llms.md](docs/free-llms.md).
 
 ## 📚 Documentation
 
@@ -82,6 +81,7 @@ Example:
 - **Obsidian** (core app)
 - **Dataview** plugin
 - **Tasks** plugin
+- **Templater** plugin (needed for `{{date}}` placeholders in templates)
 - **Obsidian Git** (backup)
 
 ## 📄 License
@@ -90,4 +90,4 @@ Example:
 
 ---
 
-**Local Second Brain** — Your knowledge, organized locally and forever.
+**Local Notion** — your workspace, organized locally and forever.

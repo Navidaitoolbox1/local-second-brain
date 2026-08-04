@@ -1,4 +1,4 @@
-# Contributing to Local-Second-Brain
+# Contributing to Local Notion
 
 Thank you for your interest in contributing!
 
@@ -15,6 +15,7 @@ Thank you for your interest in contributing!
 - Keep documentation clear and beginner-friendly.
 - Use simple Markdown.
 - Templates should be practical and well-commented.
+- The dashboard must stay a single offline HTML file: no external scripts, fonts, or network requests, and render vault content with `textContent` only (never `innerHTML`).
 
 ## Reporting Issues
 
