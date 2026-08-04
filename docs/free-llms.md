@@ -1,4 +1,4 @@
-# Using Free LLMs with Local Notion
+# Using Free LLMs with Local Second Brain
 
 You can use any free LLM (Claude, ChatGPT free, Gemini, DeepSeek, local models via Ollama, etc.) to help you:
 
@@ -20,4 +20,4 @@ Example prompt:
 
 ## Privacy Note
 
-For sensitive notes, prefer a **local model** (e.g. via Ollama or LM Studio) so your data never leaves your machine — that is the whole point of Local Notion.
+For sensitive notes, prefer a **local model** (e.g. via Ollama or LM Studio) so your data never leaves your machine — that is the whole point of Local Second Brain.

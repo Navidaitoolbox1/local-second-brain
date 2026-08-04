@@ -1,4 +1,4 @@
-# Contributing to Local Notion
+# Contributing to Local Second Brain
 
 Thank you for your interest in contributing!
 

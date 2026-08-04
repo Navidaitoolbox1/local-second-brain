@@ -1,4 +1,4 @@
-# Getting Started with Local Notion
+# Getting Started with Local Second Brain
 
 Welcome to your fully local, free, open-source alternative to Notion.
 
@@ -15,7 +15,7 @@ Welcome to your fully local, free, open-source alternative to Notion.
 | Folder | Purpose |
 |---|---|
 | `00_System_of_Record/` | Databases, projects, tasks, meeting notes, wiki, knowledge base |
-| `01_Notion_AI/` | Agent prompts: custom agents, deep research, AI meeting notes |
+| `01_AI/` | Agent prompts: custom agents, deep research, AI meeting notes |
 | `02_Developer_Platform/` | CLI tools, webhooks, syncs, agent tools |
 | `03_Connected_Workspace/` | Integration guides for external tools |
 | `04_Business_Workflows/` | CRM, roadmaps, content pipelines |
