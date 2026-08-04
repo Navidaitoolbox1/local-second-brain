@@ -87,6 +87,7 @@ Ready-made prompts live in [docs/agent-prompts.md](docs/agent-prompts.md). For s
 - [Using AI Models](docs/free-llms.md)
 - [Dataview Guide](docs/dataview-mastery.md)
 - [Agent Prompts](docs/agent-prompts.md)
+- [Roadmap to Master Claude](docs/claude-roadmap.md) ([styled version](docs/claude-roadmap.html))
 
 ## 🧩 Recommended Tools
 

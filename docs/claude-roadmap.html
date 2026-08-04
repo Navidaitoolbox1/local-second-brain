@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap to master Claude</title>
+<style>
+  :root {
+    --paper:#FAF9F5; --card:#EFEAE1; --card-light:#F5F2EB; --ink:#1A1915;
+    --grey:#6E6C67; --clay:#D97757; --clay-dark:#B8563A; --salmon:#F2C4B0; --line:#DCD5C9;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+    font-family: "Segoe UI", Calibri, system-ui, sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 64px; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 700;
+    font-size: clamp(2rem, 6vw, 3.4rem); text-align: center; margin: 0 0 6px; letter-spacing: -.01em; }
+  h1 em { font-style: italic; }
+  .lead { text-align:center; color:var(--grey); max-width:620px; margin: 0 auto 28px; font-size: 1rem; }
+  .heads { display:grid; grid-template-columns: 1fr auto 1fr; gap: 16px; margin-bottom: 14px; }
+  .pill { background:var(--ink); color:#fff; font-family: Georgia, serif; font-weight:700;
+    font-size: 1.3rem; text-align:center; padding: 10px 8px; border-radius: 10px; }
+  .heads .spacer { width: 44px; }
+  .grid { display:grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch; }
+  .card { position:relative; border:1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+    display:flex; flex-direction:column; justify-content:center; min-height: 96px; }
+  .card.beige { background:var(--card); }
+  .card.clay { background:var(--salmon); }
+  .card h3 { margin:0 0 4px; font-size: 1.12rem; font-weight: 700; color: var(--ink); padding-right: 58px; }
+  .card p { margin:0; color:var(--grey); font-size: .92rem; line-height: 1.45; }
+  .time { position:absolute; top:14px; right:14px; background:var(--clay); color:#fff;
+    font-size: .72rem; font-weight:700; padding: 3px 9px; border-radius: 6px; white-space:nowrap; }
+  .arrow { display:flex; align-items:center; justify-content:center; }
+  .arrow span { background:var(--ink); color:#fff; width:34px; height:34px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+  .foot { text-align:center; color:var(--grey); font-size:.85rem; margin-top: 32px; }
+  @media (max-width: 680px) {
+    .heads, .grid { grid-template-columns: 1fr; }
+    .heads .spacer, .arrow { display:none; }
+    .card h3 { padding-right: 58px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Roadmap to <em>master Claude</em></h1>
+  <p class="lead">A simple path from first login to advanced use. Follow Quick Start first. Move to Go Deeper when you want more.</p>
+
+  <div class="heads">
+    <div class="pill">Quick Start</div>
+    <div class="spacer"></div>
+    <div class="pill">Go Deeper</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <p class="foot">Built in the LUMIERE house style. Times are a rough guide.</p>
+</div>
+
+<script>
+"use strict";
+(() => {
+  // rows: [quickStart, goDeeper]; each item = [title, time, desc]
+  const rows = [
+    [["Open Claude","5 min","Where to type, what to ask first, and what every button on the screen actually does."],
+     ["Use Claude Cowork","18 min","Turn Claude into a real workspace where your files, chats, and projects live."]],
+    [["Prompt Claude properly","5 min","The simple structure that turns a vague request into a sharp, useful answer."],
+     ["Organise work in Projects","10 min","Group related chats and files so Claude has the right context."]],
+    [["Get Claude certified (free)","4 min","The steps to earn an official Claude certificate you can put on LinkedIn."],
+     ["Set up your team on Claude","11 min","Bring colleagues onto Claude, set roles, and share work."]],
+    [["Use Claude's new design","9 min","A quick tour of the redesigned interface so you stop hunting for things."],
+     ["Train Claude to sound like you","12 min","Feed Claude your writing so it drafts in your voice."]],
+    [["Create slides with Claude","7 min","Go from a rough idea to a finished deck without ever opening PowerPoint."],
+     ["Stop hitting usage limits","12 min","Practical ways to stretch your Claude usage further."]],
+    [["Build your first Claude skill","6 min","Teach Claude a repeatable task once, so you never have to re-explain it."],
+     ["Move past basic prompting","10 min","What comes after prompts: designing repeatable workflows that prompt themselves."]],
+    [["Stop Claude from agreeing","5 min","Make Claude push back, challenge your thinking, and tell you when you are wrong."],
+     ["Stop sounding like AI","20 min","The specific phrases and patterns that scream \"AI wrote this\" and how to drop them."]],
+    [["Let Claude use your computer","4 min","Give Claude permission to click, type, and navigate your screen on your behalf."],
+     ["Build a tool with Claude Code","11 min","Describe a small personal tool out loud and have Claude build it for you."]],
+  ];
+
+  const grid = document.getElementById("grid");
+  const card = (item, i) => {
+    const [title, time, desc] = item;
+    const c = document.createElement("div");
+    c.className = "card " + (i % 2 === 0 ? "beige" : "clay");
+    const t = document.createElement("span"); t.className = "time"; t.textContent = time;
+    const h = document.createElement("h3"); h.textContent = title;
+    const p = document.createElement("p"); p.textContent = desc;
+    c.append(t, h, p);
+    return c;
+  };
+  rows.forEach((row, i) => {
+    grid.append(card(row[0], i));
+    const a = document.createElement("div"); a.className = "arrow";
+    const s = document.createElement("span"); s.textContent = "→"; a.append(s);
+    grid.append(a);
+    grid.append(card(row[1], i));
+  });
+})();
+</script>
+</body>
+</html>
