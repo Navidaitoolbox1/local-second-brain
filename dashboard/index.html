@@ -43,22 +43,15 @@
   .btn-quiet:hover { background:var(--card-light); }
   .side-note { margin-top:auto; color:var(--grey); font-size:.72rem; line-height:1.5; padding-top:18px; }
 
-  /* ---- Navid AI ToolBox credit ---- */
-  .credit { display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:14px;
-    border-top:1px solid var(--line); }
-  .credit .badge { width:38px; height:38px; border-radius:50%; background:var(--paper);
+  /* ---- Navid AI ToolBox badge ---- */
+  .badge { width:38px; height:38px; border-radius:50%; background:var(--paper);
     border:2px solid var(--clay); box-shadow: inset 0 0 0 2px var(--ink);
     display:flex; align-items:center; justify-content:center; font-size:19px; flex:none; }
-  .credit .cname { font-family:Georgia, serif; font-weight:700; font-size:.92rem; line-height:1.25; }
-  .credit .cname .navid { color:var(--clay-dark); display:block; }
-  .credit .cname .flip { display:inline-block; transform:scaleX(-1); }
-  .credit .cname .toolbox { color:var(--ink); }
-  .lock .credit { border-top-color:#4a463f; justify-content:center; }
-  .lock .credit .cname .toolbox { color:#fff; }
+  .lock .badge { margin:18px auto 0; }
 
   /* ---- main ---- */
   main { padding:0 0 48px; }
-  .topbar { background:var(--ink); color:#fff; padding:18px 32px; display:flex; align-items:baseline; gap:14px; }
+  .topbar { background:var(--ink); color:#fff; padding:14px 32px; display:flex; align-items:center; gap:14px; }
   .topbar h1 { font-family:Georgia, serif; font-weight:700; font-size:1.5rem; margin:0; }
   .topbar .src { color:#cfc9bf; font-size:.82rem; margin-left:auto; }
   .content { padding:26px 32px; max-width:1080px; }
@@ -170,13 +163,7 @@
     <input type="password" id="lockPin" inputmode="numeric" autocomplete="off" aria-label="PIN">
     <div class="err" id="lockErr"></div>
     <button class="btn btn-clay" id="unlockBtn">Unlock</button>
-    <div class="credit">
-      <span class="badge">🦊</span>
-      <span class="cname">
-        <span class="navid">Navi<span class="flip">D</span></span>
-        <span class="toolbox">AI ToolBox</span>
-      </span>
-    </div>
+    <span class="badge">🦊</span>
   </div>
 </div>
 
@@ -204,18 +191,12 @@
     </div>
 
     <div class="side-note">🔒 100% offline. No network, no uploads. Files are only written when you move a card on the Board and confirm write access.</div>
-    <div class="credit">
-      <span class="badge">🦊</span>
-      <span class="cname">
-        <span class="navid">Navi<span class="flip">D</span></span>
-        <span class="toolbox">AI ToolBox</span>
-      </span>
-    </div>
   </aside>
 
   <!-- Main -->
   <main>
     <div class="topbar">
+      <span class="badge">🦊</span>
       <h1>Dashboard</h1>
       <span class="src" id="sourceLabel">no vault loaded</span>
     </div>
