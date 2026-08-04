@@ -64,6 +64,12 @@ The dashboard is a single offline HTML file. **It must be run as a local file, n
 
 The dashboard scans your Markdown files **locally** — tasks, projects, notes, and meetings with stats, overdue detection, search, and filters. No server, no network, nothing leaves your machine.
 
+It also includes:
+
+- **🧩 Board** — a kanban view (Todo / Doing / Done) with drag and drop. In Chrome or Edge, moving a card updates the `status` in the Markdown file itself after you grant write access once. In demo or read-only mode, moves stay on screen only.
+- **🔒 PIN lock** — set a PIN in ⚙ Settings to lock the dashboard on your device. Honest note: this locks the dashboard view only; the Markdown files stay readable on disk, so use your OS password or disk encryption for real protection.
+- **⚙ Settings** — PIN management, default view, and whether to include `templates/` and `docs/` in the scan. Stored in your browser only.
+
 The repo ships with **starter content** (example task, project, meeting, notes, goal, and agent prompts) so the dashboard and Obsidian show real data on day one. Delete the `example-*` / `welcome-*` files once you're comfortable.
 
 > Want a clickable link instead of a local file? Enable **GitHub Pages** (Settings → Pages → Deploy from branch → `main` / root). Then `https://<user>.github.io/<repo>/dashboard/` runs the dashboard over HTTPS with the full folder picker.

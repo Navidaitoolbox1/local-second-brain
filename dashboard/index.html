@@ -16,7 +16,7 @@
     font-family:"Segoe UI", Calibri, system-ui, sans-serif; }
   .app { display:grid; grid-template-columns: 256px 1fr; min-height:100vh; }
 
-  /* ---- Notion-style sidebar ---- */
+  /* ---- sidebar ---- */
   .sidebar { background:var(--card); border-right:1px solid var(--line); padding:22px 16px;
     display:flex; flex-direction:column; gap:6px; }
   .brand { font-family:Georgia, serif; font-weight:700; font-size:1.2rem; line-height:1.15; }
@@ -31,12 +31,16 @@
   nav button.active { background:var(--salmon); color:var(--clay-dark); font-weight:700; }
   nav button .count { margin-left:auto; color:var(--grey); font-size:.8rem; }
   nav button.active .count { color:var(--clay-dark); }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--clay); outline-offset:2px; }
   .side-actions { margin-top:18px; display:flex; flex-direction:column; gap:8px; }
-  .btn { border-radius:8px; padding:10px 14px; font-size:.9rem; cursor:pointer; border:1px solid var(--ink); }
+  .btn { border-radius:8px; padding:10px 14px; font-size:.9rem; cursor:pointer; border:1px solid var(--ink);
+    background:var(--white); color:var(--ink); }
   .btn-ink { background:var(--ink); color:#fff; border-color:var(--ink); }
   .btn-ink:hover { background:#000; }
   .btn-clay { background:transparent; color:var(--clay-dark); border-color:var(--clay); }
   .btn-clay:hover { background:var(--salmon); }
+  .btn-quiet { border-color:var(--line); color:var(--grey); background:transparent; }
+  .btn-quiet:hover { background:var(--card-light); }
   .side-note { margin-top:auto; color:var(--grey); font-size:.72rem; line-height:1.5; padding-top:18px; }
 
   /* ---- main ---- */
@@ -44,23 +48,22 @@
   .topbar { background:var(--ink); color:#fff; padding:18px 32px; display:flex; align-items:baseline; gap:14px; }
   .topbar h1 { font-family:Georgia, serif; font-weight:700; font-size:1.5rem; margin:0; }
   .topbar .src { color:#cfc9bf; font-size:.82rem; margin-left:auto; }
-  .content { padding:26px 32px; max-width:1000px; }
+  .content { padding:26px 32px; max-width:1080px; }
 
   .callout { background:var(--card); border-left:4px solid var(--clay); border-radius:8px;
     padding:22px 24px; }
   .callout h2 { font-family:Georgia, serif; margin:0 0 8px; font-size:1.3rem; }
   .callout p { color:var(--grey); margin:8px 0; line-height:1.55; max-width:640px; }
-  .callout ol { color:var(--grey); line-height:1.7; margin:8px 0; padding-left:20px; }
   .callout .privacy { font-size:.78rem; margin-top:12px; }
 
   .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:22px; }
   .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
   .stat.accent { border-left:4px solid var(--clay); }
-  .stat .num { font-family:Georgia, serif; font-size:1.8rem; font-weight:700; }
+  .stat .num { font-family:Georgia, serif; font-size:1.8rem; font-weight:700; font-variant-numeric:tabular-nums; }
   .stat .lbl { color:var(--grey); font-size:.8rem; margin-top:2px; }
 
   .toolbar { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
-  .toolbar input[type="search"], .toolbar select {
+  .toolbar input[type="search"], .toolbar select, .modal input, .modal select {
     background:var(--white); color:var(--ink); border:1px solid var(--line); border-radius:8px;
     padding:9px 12px; font-size:.9rem; }
   .toolbar input[type="search"] { flex:1; min-width:200px; }
@@ -84,14 +87,79 @@
   .empty { color:var(--grey); padding:30px 0; text-align:center; }
   .hidden { display:none !important; }
 
+  /* ---- kanban board ---- */
+  .board { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; align-items:start; }
+  .kcol { background:var(--card-light); border:1px solid var(--line); border-radius:10px; padding:10px; min-height:200px; }
+  .kcol.dragover { border-color:var(--clay); background:var(--salmon); }
+  .khead { display:flex; align-items:baseline; gap:8px; padding:4px 6px 10px; }
+  .khead .kname { font-family:Georgia, serif; font-weight:700; }
+  .khead .kcount { color:var(--grey); font-size:.8rem; margin-left:auto; }
+  .kdrop { display:flex; flex-direction:column; gap:8px; min-height:60px; }
+  .kcard { background:var(--white); border:1px solid var(--line); border-radius:8px; padding:10px 12px;
+    cursor:grab; display:flex; flex-direction:column; gap:6px; }
+  .kcard:active { cursor:grabbing; }
+  .kcard .title { font-weight:600; font-size:.92rem; }
+  .kcard .meta { display:flex; gap:6px; flex-wrap:wrap; }
+  .kcard .path { color:var(--grey); font-size:.7rem; direction:ltr; }
+  .kcard.dragging { opacity:.5; }
+
+  /* ---- lock screen ---- */
+  .lock { position:fixed; inset:0; background:var(--ink); color:#fff; z-index:50;
+    display:flex; align-items:center; justify-content:center; }
+  .lockbox { text-align:center; max-width:340px; padding:24px; }
+  .lockbox h2 { font-family:Georgia, serif; font-size:1.6rem; margin:0 0 6px; }
+  .lockbox p { color:#cfc9bf; font-size:.88rem; line-height:1.5; }
+  .lockbox input { width:100%; text-align:center; font-size:1.3rem; letter-spacing:.4em;
+    background:#26241f; border:1px solid #4a463f; color:#fff; border-radius:8px; padding:12px; margin:14px 0 10px; }
+  .lockbox .err { color:var(--salmon); font-size:.85rem; min-height:1.2em; }
+  .lockbox button { width:100%; }
+
+  /* ---- settings modal ---- */
+  .overlay { position:fixed; inset:0; background:rgba(26,25,21,.45); z-index:40;
+    display:flex; align-items:center; justify-content:center; padding:20px; }
+  .modal { background:var(--paper); border-radius:12px; max-width:460px; width:100%;
+    max-height:88vh; overflow-y:auto; padding:0 0 20px; }
+  .modal .mhead { background:var(--ink); color:#fff; border-radius:12px 12px 0 0; padding:14px 20px;
+    display:flex; align-items:center; }
+  .modal .mhead h2 { font-family:Georgia, serif; font-size:1.15rem; margin:0; }
+  .modal .mhead button { margin-left:auto; background:none; border:0; color:#fff; font-size:1.2rem; cursor:pointer; }
+  .modal section { padding:16px 20px 0; }
+  .modal h3 { font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--clay-dark); margin:0 0 10px; }
+  .modal .frow { display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
+  .modal .frow input[type="password"] { flex:1; min-width:120px; }
+  .modal .hint { color:var(--grey); font-size:.78rem; line-height:1.5; margin:6px 0 0; }
+  .modal .warnbox { background:var(--card); border-left:3px solid var(--clay); border-radius:6px;
+    padding:10px 12px; font-size:.78rem; color:var(--grey); line-height:1.5; }
+  .modal label.ck { display:flex; gap:8px; align-items:center; font-size:.9rem; }
+
+  /* ---- toast ---- */
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:10px 18px; border-radius:8px; font-size:.85rem;
+    z-index:60; max-width:90vw; }
+
+  @media (max-width: 860px) { .board { grid-template-columns:1fr; } }
   @media (max-width: 720px) {
     .app { grid-template-columns: 1fr; }
     .sidebar { border-right:0; border-bottom:1px solid var(--line); }
     .side-note { display:none; }
   }
+  @media (prefers-reduced-motion: no-preference) {
+    .kcard, .kcol, nav button { transition: background .15s, border-color .15s, opacity .15s; }
+  }
 </style>
 </head>
 <body>
+<!-- Lock screen -->
+<div class="lock hidden" id="lock">
+  <div class="lockbox">
+    <h2>Local <em>Second Brain</em></h2>
+    <p>This dashboard is locked. Enter your PIN to continue.</p>
+    <input type="password" id="lockPin" inputmode="numeric" autocomplete="off" aria-label="PIN">
+    <div class="err" id="lockErr"></div>
+    <button class="btn btn-clay" id="unlockBtn">Unlock</button>
+  </div>
+</div>
+
 <div class="app">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -101,6 +169,7 @@
     <div class="navlabel">Views</div>
     <nav id="nav">
       <button data-tab="tasks" class="active">✅ Tasks <span class="count" id="c-tasks"></span></button>
+      <button data-tab="board">🧩 Board <span class="count" id="c-board"></span></button>
       <button data-tab="projects">📁 Projects <span class="count" id="c-projects"></span></button>
       <button data-tab="notes">📝 Notes <span class="count" id="c-notes"></span></button>
       <button data-tab="meetings">👥 Meetings <span class="count" id="c-meetings"></span></button>
@@ -109,10 +178,12 @@
     <div class="side-actions">
       <button class="btn btn-ink" id="openBtn">📂 Open Vault Folder</button>
       <button class="btn btn-clay" id="demoBtn">▶ Load demo data</button>
+      <button class="btn btn-quiet" id="settingsBtn">⚙ Settings</button>
+      <button class="btn btn-quiet hidden" id="lockNowBtn">🔒 Lock now</button>
       <input type="file" id="dirInput" webkitdirectory multiple class="hidden">
     </div>
 
-    <div class="side-note">🔒 100% offline. No network, no uploads. Your files are read only and never changed.</div>
+    <div class="side-note">🔒 100% offline. No network, no uploads. Files are only written when you move a card on the Board and confirm write access.</div>
   </aside>
 
   <!-- Main -->
@@ -125,14 +196,11 @@
     <div class="content">
       <div id="landing" class="callout">
         <h2>Welcome</h2>
-        <p>This dashboard turns your Markdown vault into a live workspace. Tasks, projects, notes and meetings, with stats, search and filters. It runs entirely in your browser.</p>
+        <p>This dashboard turns your Markdown vault into a live workspace. Tasks, projects, notes and meetings, plus a drag and drop Board. It runs entirely in your browser.</p>
         <p><strong>New here?</strong> Click <em>▶ Load demo data</em> in the sidebar to see it working right away.</p>
-        <p><strong>Ready for your own notes?</strong> Click <em>📂 Open Vault Folder</em> and pick this repository folder.</p>
-        <ol>
-          <li>Best in Chrome or Edge for the native folder picker.</li>
-          <li>Firefox and Safari fall back to a folder upload dialog. Still 100% local.</li>
-        </ol>
-        <p class="privacy">Reading is read only. Nothing in your vault is ever modified.</p>
+        <p><strong>Ready for your own notes?</strong> Click <em>📂 Open Vault Folder</em> and pick this repository folder. Chrome or Edge give the best experience, including saving Board changes back to your files.</p>
+        <p><strong>Want a lock?</strong> Open <em>⚙ Settings</em> and set a PIN.</p>
+        <p class="privacy">Reading is read only. A file is written only when you move a card on the Board and the browser has write permission.</p>
       </div>
 
       <div id="app" class="hidden">
@@ -151,9 +219,59 @@
           </select>
         </div>
         <div class="list" id="list"></div>
+        <div class="board hidden" id="board"></div>
       </div>
     </div>
   </main>
+</div>
+
+<!-- Settings modal -->
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="modal" role="dialog" aria-label="Settings">
+    <div class="mhead"><h2>Settings</h2><button id="settingsClose" aria-label="Close">✕</button></div>
+
+    <section>
+      <h3>Security</h3>
+      <p class="hint" id="pinState"></p>
+      <div class="frow"><input type="password" id="pinCurrent" placeholder="Current PIN" class="hidden"></div>
+      <div class="frow">
+        <input type="password" id="pinNew" placeholder="New PIN (4+ digits)">
+        <input type="password" id="pinNew2" placeholder="Repeat new PIN">
+      </div>
+      <div class="frow">
+        <button class="btn btn-ink" id="pinSave">Save PIN</button>
+        <button class="btn btn-quiet hidden" id="pinRemove">Remove PIN</button>
+      </div>
+      <div class="hint" id="pinMsg"></div>
+      <div class="warnbox" style="margin-top:10px">
+        Honest note: this PIN locks the dashboard view on this device only. The Markdown files stay readable on disk for anyone with access to your computer. For real protection, use your OS account password or disk encryption such as BitLocker.
+      </div>
+    </section>
+
+    <section>
+      <h3>Scanning</h3>
+      <label class="ck"><input type="checkbox" id="optScaffold"> Include templates and docs folders in the scan</label>
+    </section>
+
+    <section>
+      <h3>Default view</h3>
+      <div class="frow">
+        <select id="optDefaultView">
+          <option value="tasks">Tasks</option>
+          <option value="board">Board</option>
+          <option value="projects">Projects</option>
+          <option value="notes">Notes</option>
+          <option value="meetings">Meetings</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <h3>Reset</h3>
+      <div class="frow"><button class="btn btn-quiet" id="optClear">Clear dashboard settings on this device</button></div>
+      <p class="hint">Removes the PIN and saved options from this browser. Your note files are not touched.</p>
+    </section>
+  </div>
 </div>
 
 <script>
@@ -162,42 +280,129 @@
   const state = { items: [], tab: "tasks", query: "", status: "", sort: "due", source: "" };
   const $ = (id) => document.getElementById(id);
   const today = new Date().toISOString().slice(0, 10);
+  let dirHandle = null;           // FSA root handle (write-back needs it)
+  const KEY_PIN = "lsb_pin_hash", KEY_OPTS = "lsb_settings";
+
+  /* ---------- settings ---------- */
+  const loadOpts = () => { try { return JSON.parse(localStorage.getItem(KEY_OPTS)) || {}; } catch { return {}; } };
+  const saveOpts = (o) => localStorage.setItem(KEY_OPTS, JSON.stringify(o));
+  let opts = loadOpts();
+  if (opts.defaultView) state.tab = opts.defaultView;
+
+  /* ---------- PIN lock ---------- */
+  async function hashPin(s) {
+    if (crypto && crypto.subtle) {
+      const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("lsb:" + s));
+      return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+    }
+    let h = 0; for (const c of "lsb:" + s) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return "x" + h.toString(16);
+  }
+  const pinSet = () => !!localStorage.getItem(KEY_PIN);
+
+  function showLock() {
+    $("lock").classList.remove("hidden");
+    $("lockPin").value = ""; $("lockErr").textContent = "";
+    $("lockPin").focus();
+  }
+  async function tryUnlock() {
+    const h = await hashPin($("lockPin").value);
+    if (h === localStorage.getItem(KEY_PIN)) {
+      $("lock").classList.add("hidden");
+    } else {
+      $("lockErr").textContent = "Wrong PIN. Try again.";
+      $("lockPin").value = ""; $("lockPin").focus();
+    }
+  }
+  $("unlockBtn").addEventListener("click", tryUnlock);
+  $("lockPin").addEventListener("keydown", (e) => { if (e.key === "Enter") tryUnlock(); });
+  $("lockNowBtn").addEventListener("click", showLock);
+  if (pinSet()) { showLock(); $("lockNowBtn").classList.remove("hidden"); }
+
+  /* ---------- settings modal ---------- */
+  function syncSettingsUI() {
+    const has = pinSet();
+    $("pinState").textContent = has ? "A PIN is set on this device." : "No PIN set. The dashboard opens without a lock.";
+    $("pinCurrent").classList.toggle("hidden", !has);
+    $("pinRemove").classList.toggle("hidden", !has);
+    $("optScaffold").checked = !!opts.includeScaffolding;
+    $("optDefaultView").value = opts.defaultView || "tasks";
+    $("pinMsg").textContent = "";
+    $("pinNew").value = ""; $("pinNew2").value = ""; $("pinCurrent").value = "";
+  }
+  $("settingsBtn").addEventListener("click", () => { syncSettingsUI(); $("settingsOverlay").classList.remove("hidden"); });
+  $("settingsClose").addEventListener("click", () => $("settingsOverlay").classList.add("hidden"));
+  $("settingsOverlay").addEventListener("click", (e) => { if (e.target === $("settingsOverlay")) $("settingsOverlay").classList.add("hidden"); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("settingsOverlay").classList.add("hidden"); });
+
+  $("pinSave").addEventListener("click", async () => {
+    const cur = $("pinCurrent").value, a = $("pinNew").value, b = $("pinNew2").value;
+    if (pinSet() && (await hashPin(cur)) !== localStorage.getItem(KEY_PIN)) { $("pinMsg").textContent = "Current PIN is wrong."; return; }
+    if (a.length < 4) { $("pinMsg").textContent = "PIN must be at least 4 characters."; return; }
+    if (a !== b) { $("pinMsg").textContent = "The two PINs do not match."; return; }
+    localStorage.setItem(KEY_PIN, await hashPin(a));
+    $("lockNowBtn").classList.remove("hidden");
+    syncSettingsUI(); $("pinMsg").textContent = "PIN saved. Use Lock now to lock the screen.";
+    toast("PIN saved");
+  });
+  $("pinRemove").addEventListener("click", async () => {
+    if ((await hashPin($("pinCurrent").value)) !== localStorage.getItem(KEY_PIN)) { $("pinMsg").textContent = "Current PIN is wrong."; return; }
+    localStorage.removeItem(KEY_PIN);
+    $("lockNowBtn").classList.add("hidden");
+    syncSettingsUI(); toast("PIN removed");
+  });
+  $("optScaffold").addEventListener("change", (e) => { opts.includeScaffolding = e.target.checked; saveOpts(opts); toast("Saved. Reopen your vault to rescan."); });
+  $("optDefaultView").addEventListener("change", (e) => { opts.defaultView = e.target.value; saveOpts(opts); toast("Default view saved"); });
+  $("optClear").addEventListener("click", () => {
+    localStorage.removeItem(KEY_PIN); localStorage.removeItem(KEY_OPTS);
+    opts = {}; $("lockNowBtn").classList.add("hidden"); syncSettingsUI(); toast("Settings cleared");
+  });
+
+  /* ---------- toast ---------- */
+  let toastTimer = null;
+  function toast(msg) {
+    let t = document.querySelector(".toast");
+    if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.append(t); }
+    t.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.remove(), 3500);
+  }
 
   /* ---------- vault opening ---------- */
   $("openBtn").addEventListener("click", async () => {
     if (window.showDirectoryPicker) {
       try {
         const dir = await window.showDirectoryPicker({ mode: "read" });
+        dirHandle = dir;
         const entries = [];
         await collectFSA(dir, "", entries);
         await loadEntries(entries, "your vault folder");
         return;
       } catch (e) {
         if (e.name === "AbortError") return;      // user cancelled the picker
-        // Any other error (e.g. opened from file:// where the API is blocked)
-        // falls through to the webkitdirectory input below.
       }
     }
     $("dirInput").click(); // fallback: Firefox/Safari, or when the API is unavailable
   });
   $("dirInput").addEventListener("change", async (ev) => {
+    dirHandle = null;
     const files = [...ev.target.files].filter(f => f.name.endsWith(".md"));
     const entries = [];
     for (const f of files) {
       entries.push({ path: f.webkitRelativePath || f.name, text: await f.text(), modified: f.lastModified || 0 });
     }
-    await loadEntries(entries, "your vault folder");
+    await loadEntries(entries, "your vault folder (read only)");
   });
-  $("demoBtn").addEventListener("click", () => loadEntries(DEMO, "demo data"));
+  $("demoBtn").addEventListener("click", () => { dirHandle = null; loadEntries(DEMO, "demo data"); });
 
   const SKIP_DIRS = new Set([".git", ".obsidian", "node_modules", ".trash"]);
-  async function collectFSA(dirHandle, prefix, out) {
-    for await (const [name, handle] of dirHandle.entries()) {
+  async function collectFSA(dh, prefix, out) {
+    for await (const [name, handle] of dh.entries()) {
       if (handle.kind === "directory") {
         if (!SKIP_DIRS.has(name)) await collectFSA(handle, prefix + name + "/", out);
       } else if (name.endsWith(".md")) {
         const file = await handle.getFile();
-        out.push({ path: prefix + name, text: await file.text(), modified: file.lastModified || 0 });
+        out.push({ path: prefix + name, text: await file.text(), modified: file.lastModified || 0, handle });
       }
     }
   }
@@ -222,7 +427,7 @@
     const done = (text.match(/^\s*[-*]\s+\[[xX]\]/gm) || []).length;
     return { open, done };
   }
-  function toItem(path, text, modified) {
+  function toItem(path, text, modified, handle) {
     const fm = parseFrontmatter(text);
     const boxes = countCheckboxes(text);
     const type = (fm.type || "").toLowerCase()
@@ -230,7 +435,7 @@
         : path.includes("Projects/") ? "project"
         : path.includes("Meeting_Notes/") ? "meeting" : "note");
     return {
-      path, type,
+      path, type, raw: text, handle: handle || null,
       title: fm.title || firstHeading(text) || path.split("/").pop().replace(/\.md$/, ""),
       status: fm.status || "", priority: fm.priority || "",
       due: fm.due || fm.deadline || "", date: fm.date || fm.created || "",
@@ -238,14 +443,13 @@
     };
   }
 
-  // Scaffolding folders that aren't real vault content
   const SKIP_PATH = /(^|\/)(templates|docs|\.git|\.obsidian|node_modules|\.trash)\//i;
   async function loadEntries(entries, sourceName) {
     const items = [];
     for (const e of entries) {
-      if (SKIP_PATH.test(e.path)) continue;            // ignore templates/docs/etc.
+      if (!opts.includeScaffolding && SKIP_PATH.test(e.path)) continue;
       if (e.text.length > 2 * 1024 * 1024) continue;   // skip huge files
-      items.push(toItem(e.path, e.text, e.modified));
+      items.push(toItem(e.path, e.text, e.modified, e.handle));
     }
     if (!items.length) {
       alert("No Markdown (.md) files were found in that folder.\nPick the repository root, or click 'Load demo data' to see how it works.");
@@ -256,7 +460,38 @@
     $("landing").classList.add("hidden");
     $("app").classList.remove("hidden");
     $("sourceLabel").textContent = sourceName + "  ·  " + items.length + " files";
+    setTab(state.tab);
     render();
+  }
+
+  /* ---------- write-back (Board drag and drop) ---------- */
+  function setFmStatus(text, status) {
+    const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (m) {
+      let fm = m[1];
+      if (/^status\s*:/mi.test(fm)) fm = fm.replace(/^status\s*:.*$/mi, "status: " + status);
+      else fm += "\nstatus: " + status;
+      return text.replace(/^---\r?\n[\s\S]*?\r?\n---/, () => "---\n" + fm + "\n---");
+    }
+    return "---\nstatus: " + status + "\n---\n\n" + text;
+  }
+  async function persistStatus(item, newStatus) {
+    item.status = newStatus;
+    item.raw = setFmStatus(item.raw, newStatus);
+    if (item.handle && dirHandle) {
+      try {
+        let perm = await dirHandle.queryPermission({ mode: "readwrite" });
+        if (perm !== "granted") perm = await dirHandle.requestPermission({ mode: "readwrite" });
+        if (perm !== "granted") { toast("Moved on the board. Write access was denied, so the file was not changed."); return; }
+        const w = await item.handle.createWritable();
+        await w.write(item.raw); await w.close();
+        toast("Saved: " + item.path);
+        return;
+      } catch (e) { toast("Moved on the board, but saving failed: " + e.message); return; }
+    }
+    toast(state.source === "demo data"
+      ? "Demo mode: board changes are not saved to files."
+      : "Read only mode: open the vault with the folder picker in Chrome or Edge to save changes.");
   }
 
   /* ---------- rendering (XSS-safe: textContent only) ---------- */
@@ -268,7 +503,7 @@
   }
 
   const TAB_TYPE = { tasks: "task", projects: "project", notes: "note", meetings: "meeting" };
-  const TAB_TITLE = { tasks: "Tasks", projects: "Projects", notes: "Notes", meetings: "Meetings" };
+  const TAB_TITLE = { tasks: "Tasks", board: "Board", projects: "Projects", notes: "Notes", meetings: "Meetings" };
 
   function renderStats() {
     const c = $("statsCards"); c.replaceChildren();
@@ -288,10 +523,10 @@
       card.append(el("div", "num", String(num)), el("div", "lbl", lbl));
       c.append(card);
     }
-    // sidebar counts
     for (const t of Object.keys(TAB_TYPE)) {
       $("c-" + t).textContent = String(state.items.filter(i => i.type === TAB_TYPE[t]).length);
     }
+    $("c-board").textContent = String(state.items.filter(i => i.type === "task").length);
   }
 
   function filtered() {
@@ -310,7 +545,6 @@
   }
 
   function renderList() {
-    $("viewTitle").textContent = TAB_TITLE[state.tab];
     const list = $("list"); list.replaceChildren();
     const arr = filtered();
     if (!arr.length) { list.append(el("div", "empty", "Nothing here yet, or adjust your filters.")); return; }
@@ -320,8 +554,8 @@
       if (i.status) row.append(el("span", "chip status-" + i.status.toLowerCase(), i.status));
       if (i.priority) row.append(el("span", "chip prio-" + i.priority.toLowerCase(), "⚑ " + i.priority));
       if (i.due) {
-        const overdue = i.due < today && (i.status || "").toLowerCase() !== "done";
-        row.append(el("span", "chip " + (overdue ? "overdue" : "due"), (overdue ? "⚠ " : "📅 ") + i.due));
+        const over = i.due < today && (i.status || "").toLowerCase() !== "done";
+        row.append(el("span", "chip " + (over ? "overdue" : "due"), (over ? "⚠ " : "📅 ") + i.due));
       } else if (i.date) row.append(el("span", "chip", "🕓 " + i.date));
       if (i.openTasks || i.doneTasks)
         row.append(el("span", "chip", `☑ ${i.doneTasks}/${i.openTasks + i.doneTasks}`));
@@ -330,19 +564,88 @@
     }
   }
 
-  function render() { renderStats(); renderList(); }
+  /* ---------- kanban board ---------- */
+  const COLS = ["Todo", "Doing", "Done"];
+  const bucket = (i) => {
+    const s = (i.status || "").toLowerCase();
+    return s === "done" ? "Done" : (s === "doing" || s === "in progress") ? "Doing" : "Todo";
+  };
+
+  function renderBoard() {
+    const board = $("board"); board.replaceChildren();
+    let tasks = state.items.filter(i => i.type === "task");
+    if (state.query) {
+      const q = state.query.toLowerCase();
+      tasks = tasks.filter(i => i.title.toLowerCase().includes(q) || i.path.toLowerCase().includes(q));
+    }
+    for (const col of COLS) {
+      const colTasks = tasks.filter(i => bucket(i) === col);
+      const kcol = el("div", "kcol"); kcol.dataset.status = col;
+      const head = el("div", "khead");
+      head.append(el("span", "kname", col), el("span", "kcount", String(colTasks.length)));
+      const drop = el("div", "kdrop");
+      for (const i of colTasks) {
+        const card = el("div", "kcard"); card.draggable = true; card.dataset.path = i.path;
+        card.append(el("div", "title", i.title));
+        const meta = el("div", "meta");
+        if (i.priority) meta.append(el("span", "chip prio-" + i.priority.toLowerCase(), "⚑ " + i.priority));
+        if (i.due) {
+          const over = i.due < today && col !== "Done";
+          meta.append(el("span", "chip " + (over ? "overdue" : "due"), (over ? "⚠ " : "📅 ") + i.due));
+        }
+        if (i.openTasks || i.doneTasks) meta.append(el("span", "chip", `☑ ${i.doneTasks}/${i.openTasks + i.doneTasks}`));
+        if (meta.children.length) card.append(meta);
+        card.append(el("div", "path", i.path));
+        card.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", i.path);
+          e.dataTransfer.effectAllowed = "move";
+          card.classList.add("dragging");
+        });
+        card.addEventListener("dragend", () => card.classList.remove("dragging"));
+        drop.append(card);
+      }
+      if (!colTasks.length) drop.append(el("div", "empty", "Drop tasks here"));
+      kcol.append(head, drop);
+      kcol.addEventListener("dragover", (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; kcol.classList.add("dragover"); });
+      kcol.addEventListener("dragleave", () => kcol.classList.remove("dragover"));
+      kcol.addEventListener("drop", async (e) => {
+        e.preventDefault(); kcol.classList.remove("dragover");
+        const path = e.dataTransfer.getData("text/plain");
+        const item = state.items.find(x => x.path === path);
+        if (!item || bucket(item) === col) return;
+        await persistStatus(item, col);
+        render();
+      });
+      board.append(kcol);
+    }
+  }
+
+  function setTab(tab) {
+    state.tab = tab;
+    for (const b of $("nav").children) b.classList.toggle("active", b.dataset.tab === tab);
+    $("viewTitle").textContent = TAB_TITLE[tab];
+    const isBoard = tab === "board";
+    $("list").classList.toggle("hidden", isBoard);
+    $("board").classList.toggle("hidden", !isBoard);
+    $("statusFilter").classList.toggle("hidden", isBoard);
+    $("sortSel").classList.toggle("hidden", isBoard);
+  }
+
+  function render() {
+    renderStats();
+    if (state.tab === "board") renderBoard(); else renderList();
+  }
 
   /* ---------- interactions ---------- */
   $("nav").addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-tab]");
     if (!btn) return;
-    state.tab = btn.dataset.tab;
-    for (const b of $("nav").children) b.classList.toggle("active", b === btn);
-    renderList();
+    setTab(btn.dataset.tab);
+    render();
   });
-  $("searchBox").addEventListener("input", (e) => { state.query = e.target.value; renderList(); });
-  $("statusFilter").addEventListener("change", (e) => { state.status = e.target.value; renderList(); });
-  $("sortSel").addEventListener("change", (e) => { state.sort = e.target.value; renderList(); });
+  $("searchBox").addEventListener("input", (e) => { state.query = e.target.value; render(); });
+  $("statusFilter").addEventListener("change", (e) => { state.status = e.target.value; render(); });
+  $("sortSel").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
 
   /* ---------- embedded demo vault (so the dashboard is usable with zero setup) ---------- */
   const dd = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
