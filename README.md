@@ -54,7 +54,17 @@ python setup.py .
 
 ### 4. Open the dashboard
 
-Open `dashboard/index.html` in your browser, click **Open Vault Folder**, and select this folder. The dashboard scans your Markdown files **locally** — tasks, projects, notes, and meetings with search, filters, and stats. No server, no network, nothing leaves your machine.
+![Dashboard preview](docs/dashboard-preview.png)
+
+The dashboard is a single offline HTML file. **It must be run as a local file, not viewed on GitHub** (GitHub only shows the source, it does not execute HTML). To use it:
+
+1. Download/clone the repo to your computer
+2. Double-click `dashboard/index.html` so it opens in your browser (Chrome or Edge recommended for the folder picker)
+3. Click **Open Vault Folder** and select this repository folder
+
+The dashboard scans your Markdown files **locally** — tasks, projects, notes, and meetings with search, filters, and stats. No server, no network, nothing leaves your machine.
+
+> Want a clickable link instead of a local file? Enable **GitHub Pages** (Settings → Pages → Deploy from branch → `main` / root). Then `https://<user>.github.io/<repo>/dashboard/` runs the dashboard over HTTPS with the full folder picker.
 
 ### 5. Start capturing
 
