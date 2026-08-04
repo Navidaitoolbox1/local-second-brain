@@ -86,7 +86,7 @@ Example:
 
 ## 📄 License
 
-MIT License
+**PolyForm Noncommercial License 1.0.0** — free to use, modify, and share for any noncommercial purpose. Commercial use requires a separate license from the copyright holder. See [LICENSE](LICENSE) for full terms, or contact taheri.navid@gmail.com to discuss commercial use.
 
 ---
 
