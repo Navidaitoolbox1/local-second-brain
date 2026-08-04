@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Local Notion - Free Local Alternative to Notion
-Setup script - creates the full Notion-like structure
+Local Second Brain - Free Local Alternative to Notion
+Setup script - creates the full local workspace structure
 """
 
 import sys
@@ -17,14 +17,14 @@ FOLDERS = [
     "00_System_of_Record/Tasks",
     "00_System_of_Record/Forms",
     "00_System_of_Record/Knowledge_Base",
-    "01_Notion_AI/Custom_Agents",
-    "01_Notion_AI/External_Agents",
-    "01_Notion_AI/Enterprise_Search",
-    "01_Notion_AI/AI_Meeting_Notes",
-    "01_Notion_AI/Deep_Research",
-    "01_Notion_AI/Autofill",
-    "01_Notion_AI/AI_Connectors",
-    "01_Notion_AI/Mobile_Agents",
+    "01_AI/Custom_Agents",
+    "01_AI/External_Agents",
+    "01_AI/Enterprise_Search",
+    "01_AI/AI_Meeting_Notes",
+    "01_AI/Deep_Research",
+    "01_AI/Autofill",
+    "01_AI/AI_Connectors",
+    "01_AI/Mobile_Agents",
     "02_Developer_Platform/CLI_Tools",
     "02_Developer_Platform/Webhooks",
     "02_Developer_Platform/Syncs",
@@ -47,14 +47,14 @@ FOLDERS = [
 ]
 
 def create_structure(base_path: Path):
-    print(f"Creating Local Notion structure in: {base_path}\n")
+    print(f"Creating Local Second Brain structure in: {base_path}\n")
     for folder in FOLDERS:
         path = base_path / folder
         path.mkdir(parents=True, exist_ok=True)
         (path / ".gitkeep").touch(exist_ok=True)
         print(f"  ✓ {folder}")
-    print("\n✅ Local Notion structure created successfully!")
+    print("\n✅ Local Second Brain structure created successfully!")
 
 if __name__ == "__main__":
-    target = Path(sys.argv[1]).expanduser().resolve() if len(sys.argv) > 1 else Path.cwd() / "Local-Notion"
+    target = Path(sys.argv[1]).expanduser().resolve() if len(sys.argv) > 1 else Path.cwd() / "Local-Second-Brain"
     create_structure(target)

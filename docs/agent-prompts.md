@@ -1,6 +1,6 @@
-# Agent Prompts for Local Notion
+# Agent Prompts for Local Second Brain
 
-Ready-to-use prompts. Store your own variants in `01_Notion_AI/Custom_Agents/`.
+Ready-to-use prompts. Store your own variants in `01_AI/Custom_Agents/`.
 
 ## Atomic Note Creator
 

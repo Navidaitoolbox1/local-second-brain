@@ -1,4 +1,4 @@
-# How to Use Local Notion
+# How to Use Local Second Brain
 
 ## Daily Workflow
 

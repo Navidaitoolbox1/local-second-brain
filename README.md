@@ -1,10 +1,10 @@
-# Local Notion
+# Local Second Brain
 
 A free, local-first, open-source alternative to Notion.
 
 Capture, organize, and retrieve your knowledge using only local Markdown files — no subscriptions, no cloud lock-in, full privacy. Works with Obsidian and any LLM.
 
-## ✨ Why Local Notion?
+## ✨ Why Local Second Brain?
 
 - **Complete Local System** — everything stored in plain Markdown files you own
 - **Notion-style Workspace** — databases, projects, tasks, meeting notes, wiki
@@ -17,9 +17,9 @@ Capture, organize, and retrieve your knowledge using only local Markdown files �
 ## 📁 Folder Structure
 
 ```
-Local-Notion/
+Local-Second-Brain/
 ├── 00_System_of_Record/       # Databases, projects, tasks, meetings, wiki, knowledge base
-├── 01_Notion_AI/              # Agent prompts: custom agents, deep research, AI meeting notes
+├── 01_AI/              # Agent prompts: custom agents, deep research, AI meeting notes
 ├── 02_Developer_Platform/     # CLI tools, webhooks, syncs, agent tools
 ├── 03_Connected_Workspace/    # Integration guides for external tools
 ├── 04_Business_Workflows/     # CRM, roadmaps, content pipelines
@@ -100,4 +100,4 @@ Ready-made prompts live in [docs/agent-prompts.md](docs/agent-prompts.md). For s
 
 ---
 
-**Local Notion** — your workspace, organized locally and forever.
+**Local Second Brain** — your workspace, organized locally and forever.
