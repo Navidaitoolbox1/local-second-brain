@@ -143,6 +143,21 @@
     background:var(--ink); color:#fff; padding:10px 18px; border-radius:8px; font-size:.85rem;
     z-index:60; max-width:90vw; }
 
+  /* ---- note editor ---- */
+  .row { cursor:pointer; }
+  .editor.modal { max-width:660px; }
+  .editor .epath { color:var(--grey); font-size:.76rem; padding:12px 20px 0; direction:ltr; word-break:break-all; }
+  .editor .qrow { display:flex; gap:6px; padding:12px 20px 0; flex-wrap:wrap; align-items:center; }
+  .editor .qrow .qlbl { color:var(--grey); font-size:.78rem; margin-right:4px; }
+  .editor .qrow button { border:1px solid var(--line); background:var(--white); color:var(--ink);
+    border-radius:999px; padding:5px 12px; font-size:.8rem; cursor:pointer; }
+  .editor .qrow button.on { background:var(--salmon); color:var(--clay-dark); border-color:var(--clay); font-weight:700; }
+  .editor textarea { display:block; width:calc(100% - 40px); margin:12px 20px 0; min-height:320px; resize:vertical;
+    font-family:"Cascadia Code", Consolas, "Courier New", monospace; font-size:.85rem; line-height:1.55;
+    border:1px solid var(--line); border-radius:8px; padding:12px; background:var(--white); color:var(--ink); }
+  .editor .eactions { display:flex; gap:8px; padding:14px 20px 0; }
+  .editor .emsg { padding:8px 20px 0; color:var(--grey); font-size:.78rem; }
+
   @media (max-width: 860px) { .board { grid-template-columns:1fr; } }
   @media (max-width: 720px) {
     .app { grid-template-columns: 1fr; }
@@ -190,7 +205,7 @@
       <input type="file" id="dirInput" webkitdirectory multiple class="hidden">
     </div>
 
-    <div class="side-note">🔒 100% offline. No network, no uploads. Files are only written when you move a card on the Board and confirm write access.</div>
+    <div class="side-note">🔒 100% offline. No network, no uploads. Files are written only when you save an edit, create an item, or move a Board card, after you grant write access.</div>
   </aside>
 
   <!-- Main -->
@@ -206,9 +221,9 @@
         <h2>Welcome</h2>
         <p>This dashboard turns your Markdown vault into a live workspace. Tasks, projects, notes and meetings, plus a drag and drop Board. It runs entirely in your browser.</p>
         <p><strong>New here?</strong> Click <em>▶ Load demo data</em> in the sidebar to see it working right away.</p>
-        <p><strong>Ready for your own notes?</strong> Click <em>📂 Open Vault Folder</em> and pick this repository folder. Chrome or Edge give the best experience, including saving Board changes back to your files.</p>
-        <p><strong>Want a lock?</strong> Open <em>⚙ Settings</em> and set a PIN.</p>
-        <p class="privacy">Reading is read only. A file is written only when you move a card on the Board and the browser has write permission.</p>
+        <p><strong>Ready for your own notes?</strong> Click <em>📂 Open Vault Folder</em> and pick this repository folder. Chrome or Edge give the best experience, including saving changes back to your files.</p>
+        <p><strong>Work right here:</strong> click any item to open and edit it, use <em>＋ New</em> to create one, and drag cards on the Board. Set a PIN in <em>⚙ Settings</em> to lock the dashboard.</p>
+        <p class="privacy">Reading is read only. Files are written only when you save an edit, create an item, or move a Board card, and the browser has write permission.</p>
       </div>
 
       <div id="app" class="hidden">
@@ -225,6 +240,7 @@
             <option value="title">Sort: title</option>
             <option value="modified">Sort: last modified</option>
           </select>
+          <button class="btn btn-clay" id="newBtn" style="padding:9px 14px; margin-left:auto">＋ New</button>
         </div>
         <div class="list" id="list"></div>
         <div class="board hidden" id="board"></div>
@@ -282,6 +298,24 @@
   </div>
 </div>
 
+<!-- Note editor modal -->
+<div class="overlay hidden" id="editorOverlay">
+  <div class="modal editor" role="dialog" aria-label="Edit note">
+    <div class="mhead"><h2 id="edTitle">Edit</h2><button id="edClose" aria-label="Close">✕</button></div>
+    <div class="epath" id="edPath"></div>
+    <div class="qrow" id="edStatus">
+      <span class="qlbl">Status:</span>
+      <button data-s="Todo">Todo</button><button data-s="Doing">Doing</button><button data-s="Done">Done</button>
+    </div>
+    <textarea id="edBody" spellcheck="false" aria-label="Note content"></textarea>
+    <div class="eactions">
+      <button class="btn btn-ink" id="edSave">Save</button>
+      <button class="btn btn-quiet" id="edCancel">Cancel</button>
+    </div>
+    <p class="emsg" id="edMsg"></p>
+  </div>
+</div>
+
 <script>
 "use strict";
 (() => {
@@ -289,6 +323,7 @@
   const $ = (id) => document.getElementById(id);
   const today = new Date().toISOString().slice(0, 10);
   let dirHandle = null;           // FSA root handle (write-back needs it)
+  let editing = null;             // item currently open in the editor
   const KEY_PIN = "lsb_pin_hash", KEY_OPTS = "lsb_settings";
 
   /* ---------- settings ---------- */
@@ -341,7 +376,9 @@
   $("settingsBtn").addEventListener("click", () => { syncSettingsUI(); $("settingsOverlay").classList.remove("hidden"); });
   $("settingsClose").addEventListener("click", () => $("settingsOverlay").classList.add("hidden"));
   $("settingsOverlay").addEventListener("click", (e) => { if (e.target === $("settingsOverlay")) $("settingsOverlay").classList.add("hidden"); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("settingsOverlay").classList.add("hidden"); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { $("settingsOverlay").classList.add("hidden"); closeEditor(); }
+  });
 
   $("pinSave").addEventListener("click", async () => {
     const cur = $("pinCurrent").value, a = $("pinNew").value, b = $("pinNew2").value;
@@ -483,24 +520,110 @@
     }
     return "---\nstatus: " + status + "\n---\n\n" + text;
   }
+  async function ensureWrite() {
+    if (!dirHandle) return false;
+    let perm = await dirHandle.queryPermission({ mode: "readwrite" });
+    if (perm !== "granted") perm = await dirHandle.requestPermission({ mode: "readwrite" });
+    return perm === "granted";
+  }
+  // Writes item.raw to its file. Returns true (saved), false (denied/error), null (no file handle).
+  async function writeBack(item) {
+    if (!item.handle || !dirHandle) return null;
+    if (!(await ensureWrite())) return false;
+    try {
+      const w = await item.handle.createWritable();
+      await w.write(item.raw); await w.close();
+      return true;
+    } catch (e) { toast("Saving failed: " + e.message); return false; }
+  }
+  function unsavedMsg(action) {
+    return state.source === "demo data"
+      ? "Demo mode: " + action + " are not written to files."
+      : "Read only mode: open the vault with the folder picker in Chrome or Edge to save.";
+  }
   async function persistStatus(item, newStatus) {
     item.status = newStatus;
     item.raw = setFmStatus(item.raw, newStatus);
-    if (item.handle && dirHandle) {
-      try {
-        let perm = await dirHandle.queryPermission({ mode: "readwrite" });
-        if (perm !== "granted") perm = await dirHandle.requestPermission({ mode: "readwrite" });
-        if (perm !== "granted") { toast("Moved on the board. Write access was denied, so the file was not changed."); return; }
-        const w = await item.handle.createWritable();
-        await w.write(item.raw); await w.close();
-        toast("Saved: " + item.path);
-        return;
-      } catch (e) { toast("Moved on the board, but saving failed: " + e.message); return; }
-    }
-    toast(state.source === "demo data"
-      ? "Demo mode: board changes are not saved to files."
-      : "Read only mode: open the vault with the folder picker in Chrome or Edge to save changes.");
+    const res = await writeBack(item);
+    if (res === true) toast("Saved: " + item.path);
+    else if (res === false) toast("Moved on the board. Write access was denied, so the file was not changed.");
+    else toast(unsavedMsg("board changes"));
   }
+
+  /* ---------- note editor (create + edit inside the dashboard) ---------- */
+  function markQStatus(status) {
+    const s = (status || "").toLowerCase();
+    for (const b of $("edStatus").querySelectorAll("button")) b.classList.toggle("on", b.dataset.s.toLowerCase() === s);
+  }
+  function openEditor(item) {
+    editing = item;
+    $("edTitle").textContent = item.title || "Untitled";
+    $("edPath").textContent = item.path;
+    $("edBody").value = item.raw || "";
+    markQStatus(item.status);
+    $("edMsg").textContent = "";
+    $("editorOverlay").classList.remove("hidden");
+    $("edBody").focus();
+  }
+  function closeEditor() { $("editorOverlay").classList.add("hidden"); editing = null; }
+  $("edClose").addEventListener("click", closeEditor);
+  $("edCancel").addEventListener("click", closeEditor);
+  $("editorOverlay").addEventListener("click", (e) => { if (e.target === $("editorOverlay")) closeEditor(); });
+  $("edStatus").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-s]"); if (!b) return;
+    $("edBody").value = setFmStatus($("edBody").value, b.dataset.s);
+    markQStatus(b.dataset.s);
+  });
+  $("edSave").addEventListener("click", async () => {
+    if (!editing) return;
+    editing.raw = $("edBody").value;
+    Object.assign(editing, toItem(editing.path, editing.raw, Date.now(), editing.handle));
+    const res = await writeBack(editing);
+    if (res === false) { $("edMsg").textContent = "Write access was denied. The file was not saved."; render(); return; }
+    toast(res === true ? "Saved: " + editing.path : unsavedMsg("changes") + " (kept for this session)");
+    closeEditor(); render();
+  });
+
+  const NEW_FOLDER = { task: "05_Personal_Productivity/Tasks", project: "00_System_of_Record/Projects",
+    meeting: "00_System_of_Record/Meeting_Notes", note: "00_System_of_Record/Knowledge_Base" };
+  function newTemplate(type, title, ymd) {
+    if (type === "task") return `---\ntype: task\nstatus: Todo\npriority: Medium\ndue: \ncreated: ${ymd}\n---\n\n# ${title}\n\n## Subtasks\n- [ ] \n`;
+    if (type === "project") return `---\ntype: project\nstatus: Active\ndeadline: \n---\n\n# ${title}\n\n## Goal\n\n\n## Milestones\n- [ ] \n`;
+    if (type === "meeting") return `---\ntype: meeting\ndate: ${ymd}\nparticipants: \n---\n\n# ${title}\n\n## Notes\n\n\n## Action Items\n- [ ] \n`;
+    return `---\ntype: note\ndomain: \ncreated: ${ymd}\n---\n\n# ${title}\n\n## Core Idea\n\n`;
+  }
+  async function createNew() {
+    const type = state.tab === "board" ? "task" : (TAB_TYPE[state.tab] || "note");
+    let title;
+    try { title = window.prompt("Title for the new " + type + ":"); }
+    catch { title = null; }
+    title = (title || "").trim();
+    if (!title) return;
+    const slug = (title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 50)) || "untitled";
+    const folder = NEW_FOLDER[type];
+    let name = slug + ".md", path = folder + "/" + name;
+    // avoid collision with an existing item
+    let n = 2;
+    while (state.items.some(it => it.path === path)) { name = slug + "-" + n + ".md"; path = folder + "/" + name; n++; }
+    const raw = newTemplate(type, title, today);
+    let handle = null;
+    if (dirHandle) {
+      if (await ensureWrite()) {
+        try {
+          let dh = dirHandle;
+          for (const seg of folder.split("/")) dh = await dh.getDirectoryHandle(seg, { create: true });
+          handle = await dh.getFileHandle(name, { create: true });
+          const w = await handle.createWritable(); await w.write(raw); await w.close();
+          toast("Created: " + path);
+        } catch (e) { toast("Create failed: " + e.message); handle = null; }
+      } else { toast("Write access denied. Created in this session only."); }
+    } else { toast(unsavedMsg("new items")); }
+    const item = toItem(path, raw, Date.now(), handle);
+    state.items.push(item);
+    render();
+    openEditor(item);
+  }
+  $("newBtn").addEventListener("click", createNew);
 
   /* ---------- rendering (XSS-safe: textContent only) ---------- */
   function el(tag, cls, txt) {
@@ -568,6 +691,8 @@
       if (i.openTasks || i.doneTasks)
         row.append(el("span", "chip", `☑ ${i.doneTasks}/${i.openTasks + i.doneTasks}`));
       row.append(el("span", "path", i.path));
+      row.title = "Click to open and edit";
+      row.addEventListener("click", () => openEditor(i));
       list.append(row);
     }
   }
@@ -610,6 +735,7 @@
           card.classList.add("dragging");
         });
         card.addEventListener("dragend", () => card.classList.remove("dragging"));
+        card.addEventListener("click", () => openEditor(i));
         drop.append(card);
       }
       if (!colTasks.length) drop.append(el("div", "empty", "Drop tasks here"));
