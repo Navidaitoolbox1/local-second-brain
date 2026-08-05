@@ -29,6 +29,7 @@
     font-size:.95rem; }
   nav button:hover { background:var(--card-light); }
   nav button.active { background:var(--salmon); color:var(--clay-dark); font-weight:700; }
+  nav button.navdrop { background:var(--salmon); color:var(--clay-dark); outline:2px dashed var(--clay); outline-offset:-2px; }
   nav button .count { margin-left:auto; color:var(--grey); font-size:.8rem; }
   nav button.active .count { color:var(--clay-dark); }
   button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--clay); outline-offset:2px; }
@@ -79,6 +80,7 @@
   .row { background:var(--white); border:1px solid var(--line); border-left:3px solid transparent;
     border-radius:8px; padding:11px 15px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
   .row:hover { border-left-color:var(--clay); }
+  .row.dragging { opacity:.5; }
   .row .title { font-weight:600; }
   .row .path { color:var(--grey); font-size:.76rem; margin-left:auto; direction:ltr; }
   .chip { background:var(--card-light); border:1px solid var(--line); border-radius:999px;
@@ -873,6 +875,66 @@
   }
   $("newBtn").addEventListener("click", createNew);
 
+  /* ---------- move an item to another folder (drag onto a sidebar view) ---------- */
+  const TYPE_FOLDER = { task: "05_Personal_Productivity/Tasks", project: "00_System_of_Record/Projects",
+    note: "00_System_of_Record/Knowledge_Base", meeting: "00_System_of_Record/Meeting_Notes" };
+  const NAV_TYPE = { tasks: "task", projects: "project", notes: "note", meetings: "meeting" };
+  function setFmType(text, type) {
+    const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (m) {
+      let fm = m[1];
+      if (/^type\s*:/mi.test(fm)) fm = fm.replace(/^type\s*:.*$/mi, "type: " + type);
+      else fm = "type: " + type + "\n" + fm;
+      return text.replace(/^---\r?\n[\s\S]*?\r?\n---/, () => "---\n" + fm + "\n---");
+    }
+    return "---\ntype: " + type + "\n---\n\n" + text;
+  }
+  async function moveFileTo(item, folder, name) {
+    let dh = dirHandle;
+    for (const seg of folder.split("/")) dh = await dh.getDirectoryHandle(seg, { create: true });
+    const fh = await dh.getFileHandle(name, { create: true });
+    const w = await fh.createWritable(); await w.write(item.raw); await w.close();
+    // remove the old file
+    const segs = item.path.split("/"); const oldName = segs.pop();
+    let odh = dirHandle;
+    for (const seg of segs) odh = await odh.getDirectoryHandle(seg);
+    await odh.removeEntry(oldName);
+    return fh;
+  }
+  async function moveItem(item, newType) {
+    if (!item || !newType || item.type === newType || !TYPE_FOLDER[newType]) return;
+    const folder = TYPE_FOLDER[newType];
+    const base = item.path.split("/").pop().replace(/\.md$/, "");
+    let name = base + ".md", newPath = folder + "/" + name, n = 2;
+    while (state.items.some(it => it !== item && it.path === newPath)) { name = base + "-" + n + ".md"; newPath = folder + "/" + name; n++; }
+    item.raw = setFmType(item.raw, newType);
+    if (item.handle && dirHandle) {
+      if (!(await ensureWrite())) { toast("Write access denied. The item was not moved."); return; }
+      try { item.handle = await moveFileTo(item, folder, name); }
+      catch (e) { toast("Move failed: " + e.message); return; }
+      toast("Moved to " + newType + ": " + newPath);
+    } else {
+      toast(unsavedMsg("moves"));
+    }
+    Object.assign(item, toItem(newPath, item.raw, Date.now(), item.handle));
+    render();
+  }
+  $("nav").addEventListener("dragover", (e) => {
+    const b = e.target.closest("button[data-tab]");
+    if (!b || !NAV_TYPE[b.dataset.tab]) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = "move"; b.classList.add("navdrop");
+  });
+  $("nav").addEventListener("dragleave", (e) => {
+    const b = e.target.closest("button[data-tab]"); if (b) b.classList.remove("navdrop");
+  });
+  $("nav").addEventListener("drop", async (e) => {
+    const b = e.target.closest("button[data-tab]");
+    if (!b || !NAV_TYPE[b.dataset.tab]) return;
+    e.preventDefault(); b.classList.remove("navdrop");
+    const path = e.dataTransfer.getData("text/plain");
+    await moveItem(state.items.find(x => x.path === path), NAV_TYPE[b.dataset.tab]);
+  });
+
   /* ---------- rendering (XSS-safe: textContent only) ---------- */
   function el(tag, cls, txt) {
     const n = document.createElement(tag);
@@ -939,7 +1001,10 @@
       if (i.openTasks || i.doneTasks)
         row.append(el("span", "chip", `☑ ${i.doneTasks}/${i.openTasks + i.doneTasks}`));
       row.append(el("span", "path", i.path));
-      row.title = "Click to open and edit";
+      row.title = "Click to open. Drag onto another view in the sidebar to move it there.";
+      row.draggable = true;
+      row.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", i.path); e.dataTransfer.effectAllowed = "move"; row.classList.add("dragging"); });
+      row.addEventListener("dragend", () => row.classList.remove("dragging"));
       row.addEventListener("click", () => openEditor(i));
       list.append(row);
     }
