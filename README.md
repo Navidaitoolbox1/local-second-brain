@@ -66,7 +66,8 @@ The dashboard scans your Markdown files **locally** — tasks, projects, notes, 
 
 It also includes:
 
-- **🧩 Board** — a kanban view (Todo / Doing / Done) with drag and drop. In Chrome or Edge, moving a card updates the `status` in the Markdown file itself after you grant write access once. In demo or read-only mode, moves stay on screen only.
+- **✍️ Edit and create in place** — click any item to open an editor with the full note, quick Todo/Doing/Done buttons, and Save. Use **＋ New** to create a task, project, note, or meeting from a template. In Chrome or Edge, saving and creating write straight to the Markdown files after you grant write access once; in demo or read-only mode, changes stay in the session.
+- **🧩 Board** — a kanban view (Todo / Doing / Done) with drag and drop. Moving a card updates the `status` in the Markdown file. In demo or read-only mode, moves stay on screen only.
 - **🔒 PIN lock** — set a PIN in ⚙ Settings to lock the dashboard on your device. Honest note: this locks the dashboard view only; the Markdown files stay readable on disk, so use your OS password or disk encryption for real protection.
 - **⚙ Settings** — PIN management, default view, and whether to include `templates/` and `docs/` in the scan. Stored in your browser only.
 
