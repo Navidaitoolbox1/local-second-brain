@@ -143,18 +143,27 @@
     background:var(--ink); color:#fff; padding:10px 18px; border-radius:8px; font-size:.85rem;
     z-index:60; max-width:90vw; }
 
-  /* ---- note editor ---- */
+  /* ---- note editor (friendly form) ---- */
   .row { cursor:pointer; }
   .editor.modal { max-width:660px; }
-  .editor .epath { color:var(--grey); font-size:.76rem; padding:12px 20px 0; direction:ltr; word-break:break-all; }
-  .editor .qrow { display:flex; gap:6px; padding:12px 20px 0; flex-wrap:wrap; align-items:center; }
-  .editor .qrow .qlbl { color:var(--grey); font-size:.78rem; margin-right:4px; }
+  .editor .epath { color:var(--grey); font-size:.72rem; padding:10px 20px 0; direction:ltr; word-break:break-all; }
+  .editor .eform { padding:8px 20px 0; display:flex; flex-direction:column; gap:12px; }
+  .editor .fl { display:flex; flex-direction:column; gap:5px; font-size:.72rem; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--grey); }
+  .editor .fl input[type="text"], .editor .fl select, .editor .fl input[type="date"], .editor textarea {
+    font-family:inherit; font-size:.95rem; letter-spacing:normal; text-transform:none; color:var(--ink);
+    background:var(--white); border:1px solid var(--line); border-radius:8px; padding:9px 11px; }
+  .editor .fl input[type="text"] { font-family:Georgia, serif; font-size:1.15rem; font-weight:700; }
+  .editor textarea { min-height:230px; resize:vertical; line-height:1.6; }
+  .editor textarea.dropping { border-color:var(--clay); background:var(--salmon); }
+  .editor .frow2 { display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; }
+  .editor .fl.small { flex:0 0 auto; }
+  .editor .qrow { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .editor .qrow .qlbl { color:var(--grey); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; margin-right:2px; }
   .editor .qrow button { border:1px solid var(--line); background:var(--white); color:var(--ink);
-    border-radius:999px; padding:5px 12px; font-size:.8rem; cursor:pointer; }
+    border-radius:999px; padding:6px 13px; font-size:.82rem; cursor:pointer; }
   .editor .qrow button.on { background:var(--salmon); color:var(--clay-dark); border-color:var(--clay); font-weight:700; }
-  .editor textarea { display:block; width:calc(100% - 40px); margin:12px 20px 0; min-height:320px; resize:vertical;
-    font-family:"Cascadia Code", Consolas, "Courier New", monospace; font-size:.85rem; line-height:1.55;
-    border:1px solid var(--line); border-radius:8px; padding:12px; background:var(--white); color:var(--ink); }
+  .editor .drophint { color:var(--grey); font-size:.72rem; margin-top:-4px; }
   .editor .eactions { display:flex; gap:8px; padding:14px 20px 0; }
   .editor .emsg { padding:8px 20px 0; color:var(--grey); font-size:.78rem; }
 
@@ -301,13 +310,29 @@
 <!-- Note editor modal -->
 <div class="overlay hidden" id="editorOverlay">
   <div class="modal editor" role="dialog" aria-label="Edit note">
-    <div class="mhead"><h2 id="edTitle">Edit</h2><button id="edClose" aria-label="Close">✕</button></div>
+    <div class="mhead"><h2 id="edHeading">Edit</h2><button id="edClose" aria-label="Close">✕</button></div>
     <div class="epath" id="edPath"></div>
-    <div class="qrow" id="edStatus">
-      <span class="qlbl">Status:</span>
-      <button data-s="Todo">Todo</button><button data-s="Doing">Doing</button><button data-s="Done">Done</button>
+    <div class="eform">
+      <label class="fl">Title
+        <input type="text" id="edTitle" placeholder="Untitled">
+      </label>
+      <div class="frow2">
+        <div class="qrow" id="edStatus">
+          <span class="qlbl">Status</span>
+          <button type="button" data-s="Todo">Todo</button><button type="button" data-s="Doing">Doing</button><button type="button" data-s="Done">Done</button>
+        </div>
+        <label class="fl small">Priority
+          <select id="edPriority"><option value="">None</option><option>Low</option><option>Medium</option><option>High</option></select>
+        </label>
+        <label class="fl small">Due
+          <input type="date" id="edDue">
+        </label>
+      </div>
+      <label class="fl">Note
+        <textarea id="edBody" spellcheck="true" aria-label="Note content" placeholder="Write here. You can drag an image or a text file into this box to add it."></textarea>
+      </label>
+      <div class="drophint">🖼️ Drag an image or a text file onto the note to add it.</div>
     </div>
-    <textarea id="edBody" spellcheck="false" aria-label="Note content"></textarea>
     <div class="eactions">
       <button class="btn btn-ink" id="edSave">Save</button>
       <button class="btn btn-quiet" id="edCancel">Cancel</button>
@@ -550,39 +575,132 @@
     else toast(unsavedMsg("board changes"));
   }
 
-  /* ---------- note editor (create + edit inside the dashboard) ---------- */
+  /* ---------- note editor (friendly form + drag and drop) ---------- */
+  // Split a Markdown file into frontmatter, title, and body prose.
+  function parseDoc(raw) {
+    const fm = new Map(); let body = raw || ""; let titleInFm = false;
+    const m = (raw || "").match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+    if (m) {
+      for (const line of m[1].split(/\r?\n/)) {
+        const kv = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+        if (kv) fm.set(kv[1].toLowerCase(), kv[2]);
+      }
+      body = m[2] || "";
+    }
+    let title = "";
+    if (fm.has("title") && fm.get("title").trim()) {
+      title = fm.get("title").replace(/^["']|["']$/g, "").trim(); titleInFm = true;
+    } else {
+      const t = body.match(/^\s*#\s+(.+?)\s*(\r?\n|$)/);
+      if (t) { title = t[1].trim(); body = body.slice(t[0].length); }
+    }
+    return { fm, title, body: body.replace(/^\r?\n+/, ""), titleInFm };
+  }
+  // Rebuild a Markdown file from the parsed doc plus the form values.
+  function buildDoc(parsed, form) {
+    const fm = parsed.fm;
+    if (form.status) fm.set("status", form.status); else fm.delete("status");
+    if (form.priority) fm.set("priority", form.priority); else fm.delete("priority");
+    const dueKey = (fm.has("deadline") && !fm.has("due")) ? "deadline" : "due";
+    if (form.due) fm.set(dueKey, form.due); else fm.delete(dueKey);
+    let h1 = "";
+    if (parsed.titleInFm) { if (form.title) fm.set("title", form.title); }
+    else h1 = form.title ? "# " + form.title + "\n\n" : "";
+    const lines = [];
+    for (const [k, v] of fm) lines.push(k + ": " + v);
+    const fmText = lines.length ? "---\n" + lines.join("\n") + "\n---\n\n" : "";
+    let body = form.body || "";
+    if (body && !body.endsWith("\n")) body += "\n";
+    return fmText + h1 + body;
+  }
+
+  let edParsed = null;
   function markQStatus(status) {
     const s = (status || "").toLowerCase();
     for (const b of $("edStatus").querySelectorAll("button")) b.classList.toggle("on", b.dataset.s.toLowerCase() === s);
   }
   function openEditor(item) {
     editing = item;
-    $("edTitle").textContent = item.title || "Untitled";
+    edParsed = parseDoc(item.raw || "");
+    $("edHeading").textContent = "Edit " + (item.type || "note");
     $("edPath").textContent = item.path;
-    $("edBody").value = item.raw || "";
-    markQStatus(item.status);
+    $("edTitle").value = edParsed.title;
+    $("edBody").value = edParsed.body;
+    $("edPriority").value = edParsed.fm.get("priority") || "";
+    $("edDue").value = (edParsed.fm.get("due") || edParsed.fm.get("deadline") || "").trim();
+    markQStatus(edParsed.fm.get("status") || item.status);
     $("edMsg").textContent = "";
     $("editorOverlay").classList.remove("hidden");
-    $("edBody").focus();
+    $("edTitle").focus();
   }
-  function closeEditor() { $("editorOverlay").classList.add("hidden"); editing = null; }
+  function closeEditor() { $("editorOverlay").classList.add("hidden"); editing = null; edParsed = null; }
   $("edClose").addEventListener("click", closeEditor);
   $("edCancel").addEventListener("click", closeEditor);
   $("editorOverlay").addEventListener("click", (e) => { if (e.target === $("editorOverlay")) closeEditor(); });
   $("edStatus").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-s]"); if (!b) return;
-    $("edBody").value = setFmStatus($("edBody").value, b.dataset.s);
-    markQStatus(b.dataset.s);
+    markQStatus(b.classList.contains("on") ? "" : b.dataset.s);   // toggle
   });
   $("edSave").addEventListener("click", async () => {
-    if (!editing) return;
-    editing.raw = $("edBody").value;
+    if (!editing || !edParsed) return;
+    const on = $("edStatus").querySelector("button.on");
+    const form = {
+      title: $("edTitle").value.trim(),
+      status: on ? on.dataset.s : (edParsed.fm.get("status") || ""),
+      priority: $("edPriority").value,
+      due: $("edDue").value,
+      body: $("edBody").value,
+    };
+    editing.raw = buildDoc(edParsed, form);
     Object.assign(editing, toItem(editing.path, editing.raw, Date.now(), editing.handle));
     const res = await writeBack(editing);
     if (res === false) { $("edMsg").textContent = "Write access was denied. The file was not saved."; render(); return; }
     toast(res === true ? "Saved: " + editing.path : unsavedMsg("changes") + " (kept for this session)");
     closeEditor(); render();
   });
+
+  /* ---------- drag and drop files into the note ---------- */
+  function insertAtCursor(text) {
+    const ta = $("edBody");
+    const s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? ta.value.length;
+    ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+    const pos = s + text.length; ta.selectionStart = ta.selectionEnd = pos; ta.focus();
+  }
+  async function addFileToNote(file) {
+    const isImg = /^image\//.test(file.type);
+    const isText = /^text\//.test(file.type) || /\.(md|txt|csv|json)$/i.test(file.name);
+    if (isImg) {
+      const safe = file.name.replace(/[^\w.\-]+/g, "_");
+      if (editing && editing.handle && dirHandle && await ensureWrite()) {
+        try {
+          const dh = await dirHandle.getDirectoryHandle("attachments", { create: true });
+          const fh = await dh.getFileHandle(safe, { create: true });
+          const w = await fh.createWritable(); await w.write(file); await w.close();
+          insertAtCursor("\n![" + file.name + "](attachments/" + safe + ")\n");
+          toast("Added image: attachments/" + safe);
+        } catch (err) { toast("Could not save image: " + err.message); }
+      } else {
+        const dataUrl = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
+        insertAtCursor("\n![" + file.name + "](" + dataUrl + ")\n");
+        toast("Image added inline (no write access, embedded in the note).");
+      }
+    } else if (isText) {
+      insertAtCursor("\n" + (await file.text()) + "\n");
+      toast("Added text from " + file.name);
+    } else {
+      toast("That file type is not supported: " + (file.type || file.name));
+    }
+  }
+  (() => {
+    const ta = $("edBody");
+    for (const ev of ["dragenter", "dragover"]) ta.addEventListener(ev, (e) => { e.preventDefault(); ta.classList.add("dropping"); });
+    for (const ev of ["dragleave", "dragend"]) ta.addEventListener(ev, () => ta.classList.remove("dropping"));
+    ta.addEventListener("drop", async (e) => {
+      e.preventDefault(); ta.classList.remove("dropping");
+      const files = [...(e.dataTransfer && e.dataTransfer.files || [])];
+      for (const f of files) await addFileToNote(f);
+    });
+  })();
 
   const NEW_FOLDER = { task: "05_Personal_Productivity/Tasks", project: "00_System_of_Record/Projects",
     meeting: "00_System_of_Record/Meeting_Notes", note: "00_System_of_Record/Knowledge_Base" };
