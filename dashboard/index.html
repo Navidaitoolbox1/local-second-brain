@@ -166,6 +166,31 @@
   .editor .drophint { color:var(--grey); font-size:.72rem; margin-top:-4px; }
   .editor .eactions { display:flex; gap:8px; padding:14px 20px 0; }
   .editor .emsg { padding:8px 20px 0; color:var(--grey); font-size:.78rem; }
+  .editor .noterow { display:flex; align-items:center; }
+  .editor .wtabs { margin-left:auto; display:flex; gap:4px; }
+  .editor .wtabs button { border:1px solid var(--line); background:var(--white); color:var(--grey);
+    border-radius:6px; padding:4px 10px; font-size:.75rem; cursor:pointer; text-transform:none; letter-spacing:normal; }
+  .editor .wtabs button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+
+  /* rendered markdown preview */
+  .mdview { border:1px solid var(--line); border-radius:8px; padding:12px 16px; background:var(--white);
+    min-height:230px; line-height:1.65; letter-spacing:normal; text-transform:none; color:var(--ink);
+    overflow-wrap:anywhere; }
+  .mdview h1, .mdview h2, .mdview h3, .mdview h4 { font-family:Georgia, serif; margin:.7em 0 .3em; line-height:1.25; }
+  .mdview h1 { font-size:1.45rem; } .mdview h2 { font-size:1.2rem; } .mdview h3 { font-size:1.05rem; }
+  .mdview p { margin:.5em 0; }
+  .mdview ul, .mdview ol { margin:.4em 0 .4em 1.3em; padding:0; }
+  .mdview li { margin:.15em 0; }
+  .mdview li.task { list-style:none; margin-left:-1.3em; }
+  .mdview li.task input { margin-right:6px; accent-color:var(--clay); }
+  .mdview code { background:var(--card-light); border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:.88em; }
+  .mdview pre { background:var(--card-light); border:1px solid var(--line); border-radius:8px; padding:10px 12px; overflow-x:auto; }
+  .mdview pre code { background:none; border:0; padding:0; }
+  .mdview blockquote { border-left:3px solid var(--clay); margin:.5em 0; padding:2px 12px; color:var(--grey); }
+  .mdview a { color:var(--clay-dark); }
+  .mdview img { max-width:100%; border-radius:6px; margin:6px 0; display:block; }
+  .mdview hr { border:0; border-top:1px solid var(--line); margin:12px 0; }
+  .mdview .muted { color:var(--grey); }
 
   @media (max-width: 860px) { .board { grid-template-columns:1fr; } }
   @media (max-width: 720px) {
@@ -328,9 +353,16 @@
           <input type="date" id="edDue">
         </label>
       </div>
-      <label class="fl">Note
+      <div class="fl">
+        <div class="noterow"><span>Note</span>
+          <div class="wtabs" id="edWtabs">
+            <button type="button" data-w="write" class="on">✏️ Write</button>
+            <button type="button" data-w="preview">👁 Preview</button>
+          </div>
+        </div>
         <textarea id="edBody" spellcheck="true" aria-label="Note content" placeholder="Write here. You can drag an image or a text file into this box to add it."></textarea>
-      </label>
+        <div class="mdview hidden" id="edPreview" aria-label="Rendered preview"></div>
+      </div>
       <div class="drophint">🖼️ Drag an image or a text file onto the note to add it.</div>
     </div>
     <div class="eactions">
@@ -630,6 +662,7 @@
     $("edDue").value = (edParsed.fm.get("due") || edParsed.fm.get("deadline") || "").trim();
     markQStatus(edParsed.fm.get("status") || item.status);
     $("edMsg").textContent = "";
+    showEditorMode("write");
     $("editorOverlay").classList.remove("hidden");
     $("edTitle").focus();
   }
@@ -701,6 +734,103 @@
       for (const f of files) await addFileToNote(f);
     });
   })();
+
+  /* ---------- Write / Preview toggle with a safe Markdown renderer ---------- */
+  function safeUrl(u, imgOnly) {
+    u = (u || "").trim();
+    if (/^https?:\/\//i.test(u)) return u;
+    if (imgOnly && /^data:image\//i.test(u)) return u;
+    if (imgOnly && /^(attachments\/|\.{0,2}\/)?[\w.\- /]+\.(png|jpe?g|gif|webp|svg)$/i.test(u)) return u;
+    if (!imgOnly && /^[\w.\-/#]+$/.test(u)) return u;   // relative link or anchor
+    return null;                                         // block javascript:, etc.
+  }
+  function appendInline(parent, text) {
+    const patterns = [
+      { re: /!\[([^\]]*)\]\(([^)]+)\)/, kind: "img" },
+      { re: /\[([^\]]+)\]\(([^)]+)\)/, kind: "link" },
+      { re: /`([^`]+)`/, kind: "code" },
+      { re: /\*\*([^*]+)\*\*/, kind: "bold" },
+      { re: /__([^_]+)__/, kind: "bold" },
+      { re: /\*([^*]+)\*/, kind: "italic" },
+      { re: /_([^_]+)_/, kind: "italic" },
+    ];
+    let rest = text;
+    while (rest) {
+      let best = null;
+      for (const p of patterns) { const m = p.re.exec(rest); if (m && (!best || m.index < best.m.index)) best = { p, m }; }
+      if (!best) { parent.appendChild(document.createTextNode(rest)); break; }
+      if (best.m.index > 0) parent.appendChild(document.createTextNode(rest.slice(0, best.m.index)));
+      const m = best.m;
+      if (best.p.kind === "img") {
+        const u = safeUrl(m[2], true);
+        if (u) { const img = document.createElement("img"); img.src = u; img.alt = m[1]; parent.appendChild(img); }
+        else parent.appendChild(document.createTextNode(m[0]));
+      } else if (best.p.kind === "link") {
+        const u = safeUrl(m[2], false); const a = document.createElement("a"); a.textContent = m[1];
+        if (u) { a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer"; }
+        parent.appendChild(a);
+      } else if (best.p.kind === "code") { const c = document.createElement("code"); c.textContent = m[1]; parent.appendChild(c); }
+      else if (best.p.kind === "bold") { const b = document.createElement("strong"); appendInline(b, m[1]); parent.appendChild(b); }
+      else { const it = document.createElement("em"); appendInline(it, m[1]); parent.appendChild(it); }
+      rest = rest.slice(best.m.index + best.m[0].length);
+    }
+  }
+  function mdToDom(text) {
+    const frag = document.createDocumentFragment();
+    const lines = (text || "").replace(/\r\n/g, "\n").split("\n");
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      if (/^```/.test(line)) {
+        const pre = document.createElement("pre"), code = document.createElement("code");
+        i++; const buf = [];
+        while (i < lines.length && !/^```/.test(lines[i])) { buf.push(lines[i]); i++; }
+        i++; code.textContent = buf.join("\n"); pre.appendChild(code); frag.appendChild(pre); continue;
+      }
+      const h = line.match(/^(#{1,6})\s+(.*)$/);
+      if (h) { const el = document.createElement("h" + h[1].length); appendInline(el, h[2]); frag.appendChild(el); i++; continue; }
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { frag.appendChild(document.createElement("hr")); i++; continue; }
+      if (/^\s*>/.test(line)) {
+        const bq = document.createElement("blockquote"); const buf = [];
+        while (i < lines.length && /^\s*>/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, "")); i++; }
+        appendInline(bq, buf.join(" ")); frag.appendChild(bq); continue;
+      }
+      if (/^\s*([-*+]|\d+\.)\s+/.test(line)) {
+        const ordered = /^\s*\d+\.\s+/.test(line);
+        const listEl = document.createElement(ordered ? "ol" : "ul");
+        while (i < lines.length && /^\s*([-*+]|\d+\.)\s+/.test(lines[i])) {
+          const item = lines[i].replace(/^\s*([-*+]|\d+\.)\s+/, "");
+          const li = document.createElement("li");
+          const cb = item.match(/^\[([ xX])\]\s+(.*)$/);
+          if (cb) {
+            const box = document.createElement("input"); box.type = "checkbox"; box.disabled = true; box.checked = /x/i.test(cb[1]);
+            li.className = "task"; li.appendChild(box); appendInline(li, cb[2]);
+          } else appendInline(li, item);
+          listEl.appendChild(li); i++;
+        }
+        frag.appendChild(listEl); continue;
+      }
+      if (/^\s*$/.test(line)) { i++; continue; }
+      const buf = [];
+      while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6}\s|\s*([-*+]|\d+\.)\s|\s*>|```)/.test(lines[i])) { buf.push(lines[i]); i++; }
+      const p = document.createElement("p"); appendInline(p, buf.join("\n")); frag.appendChild(p);
+    }
+    return frag;
+  }
+  function showEditorMode(mode) {
+    const preview = mode === "preview";
+    $("edBody").classList.toggle("hidden", preview);
+    $("edPreview").classList.toggle("hidden", !preview);
+    for (const b of $("edWtabs").children) b.classList.toggle("on", b.dataset.w === mode);
+    if (preview) {
+      const title = $("edTitle").value.trim();
+      const content = (title ? "# " + title + "\n\n" : "") + $("edBody").value;
+      const out = mdToDom(content);
+      if (!out.childNodes.length) { const e = document.createElement("p"); e.className = "muted"; e.textContent = "Nothing to preview yet."; out.appendChild(e); }
+      $("edPreview").replaceChildren(out);
+    }
+  }
+  $("edWtabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-w]"); if (b) showEditorMode(b.dataset.w); });
 
   const NEW_FOLDER = { task: "05_Personal_Productivity/Tasks", project: "00_System_of_Record/Projects",
     meeting: "00_System_of_Record/Meeting_Notes", note: "00_System_of_Record/Knowledge_Base" };
